@@ -2,6 +2,14 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User, Group
 
+from app.models import Submission
+
+
+class SubmissionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'problem_name', 'user_id',
+                    'assignment_id', 'time_limit', 'memory_limit')
+    search_fields = ('user_id', 'assignment_idb')
+
 
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'first_name', 'last_name', 'is_superuser')
@@ -22,3 +30,4 @@ class CustomUserAdmin(UserAdmin):
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.unregister(Group)
+admin.site.register(Submission, SubmissionAdmin)
