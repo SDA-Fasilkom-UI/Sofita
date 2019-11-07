@@ -11,6 +11,7 @@ def generate_token():
 
 class Submission(models.Model):
     problem_name = models.CharField(max_length=256)
+    filename = models.CharField(max_length=256)
     assignment_id = models.IntegerField()
     user_id = models.IntegerField()
     content = models.TextField()
@@ -18,6 +19,10 @@ class Submission(models.Model):
     time_limit = models.IntegerField(default=2)
     memory_limit = models.IntegerField(default=256)
     attempt_number = models.IntegerField()
+
+    due_date = models.IntegerField()
+    cut_off_date = models.IntegerField()
+    time_modified = models.IntegerField()
 
     def __str__(self):
         return "{} - {} - {}".format(self.id_number, self.problem_name, self.attempt_number)
