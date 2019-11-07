@@ -1,20 +1,31 @@
+import hashlib
+import secrets
+
 from djongo import models
-import hashlib, secrets
+
 
 def generate_token():
     secure_string = secrets.token_urlsafe(69)
-    return hashlib.sha256(secure_string.encode())
+    return hashlib.sha256(secure_string.encode()).hexdigest()
 
-# Create your models here.
+
 class Submission(models.Model):
-    name = models.CharField(max_length=255)
-    problem_name = models.CharField(max_length=255)
+    problem_name = models.CharField(max_length=256)
     assignment_id = models.IntegerField()
     user_id = models.IntegerField()
     content = models.TextField()
-    id_number = models.CharField(max_length=15)
-    time_limit = models.IntegerField(default=3)
+    id_number = models.CharField(max_length=16)
+    time_limit = models.IntegerField(default=2)
     memory_limit = models.IntegerField(default=256)
+    attempt_number = models.IntegerField()
+
+    def __str__(self):
+        return "{} - {} - {}".format(self.id_number, self.problem_name, self.attempt_number)
+
 
 class Token(models.Model):
-    token = models.CharField(max_length=63, default=generate_token)
+    token = models.CharField(max_length=64, default=generate_token)
+    service = models.CharField(max_length=32)
+
+    def __str__(self):
+        return "{} - {}".format(self.token, self.service)
