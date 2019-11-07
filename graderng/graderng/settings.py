@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get("DJANGO_ENV", "debug") == "debug")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -125,4 +125,12 @@ STATIC_URL = '/static/'
 
 # Celery
 
-CELERY_BROKER_URL = 'amqp://localhost'
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "amqp://localhost")
+
+
+# SCELE
+
+SCELE_URL = os.environ.get(
+    "SCELE_URL", "http://127.0.0.1/webservice/rest/server.php")
+
+SCELE_TOKEN = os.environ.get("SCELE_TOKEN", "887bfe50daa8b8e518dd38e3832199b6")
