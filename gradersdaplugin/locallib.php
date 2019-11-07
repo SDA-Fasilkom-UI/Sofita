@@ -219,7 +219,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
         $ret = $this->assignment->get_submission_plugin_by_type('file');
         $data = [
             'userid' => (int) $USER->id,
-            'attemptnumber' => (int) $submission->attemptnumber,
+            'attemptnumber' => (int) $submission->attemptnumber + 1,
             'assignmentid' => (int) $this->assignment->get_instance()->id
         ];
 
@@ -241,6 +241,10 @@ class assign_submission_gradersda extends assign_submission_plugin {
                 $data['memorylimit'] = $memorylimit;
                 $data['problemname'] = $problemname;
                 $data['idnumber'] = $USER->idnumber;
+                $data['filename'] = $file->get_filename();
+                $data['duedate'] = $this->assignment->get_instance()->duedate;
+                $data['cutoffdate'] = $this->assignment->get_instance()->cutoffdate;
+                $data['timemodified'] = $submission->timemodified;
 
                 $this->update_submission_status($submission, $this->statusoptions['SUCCESS']);
                 $this->send_to_grader($submission, 'grade', $data);

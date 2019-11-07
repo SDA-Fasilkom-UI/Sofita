@@ -123,9 +123,19 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
+# Redis
+
+REDIS_HOST = "localhost"
+
+REDIS_PORT = 6379
+
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
+
+
 # Celery
 
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "amqp://localhost")
+CELERY_BROKER_URL = os.environ.get(
+    "CELERY_BROKER_URL", "redis://localhost:6379/0")
 
 
 # SCELE

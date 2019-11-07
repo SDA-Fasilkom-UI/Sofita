@@ -1,8 +1,10 @@
 import requests
+import redis
 
 from django.conf import settings
 from celery import shared_task
 
+from app import redis_connection_pool
 from app.models import Submission
 
 
@@ -12,6 +14,8 @@ PARAMS = {
     "wsfunction": "mod_assign_save_grade",
     "moodlewsrestformat": "json"
 }
+
+redis = redis.Redis(connection_pool=redis_connection_pool)
 
 
 @shared_task
@@ -24,7 +28,7 @@ def grade(submission_id, assignment_id, user_id, attempt_number):
             "assignmentid": assignment_id,
             "userid": user_id,
             "grade": 0,  # Update to highest
-            "attemptnumber": attempt_number,
+            "attemptnumber": attempt_number - 1,
             "addattempt": 1,
             "workflowstate": "",
             "applytoall": 0,
@@ -40,7 +44,7 @@ def grade(submission_id, assignment_id, user_id, attempt_number):
         "assignmentid": sub.assignment_id,
         "userid": sub.user_id,
         "grade": 73,  # TODO get data from grade
-        "attemptnumber": sub.attempt_number,
+        "attemptnumber": sub.attempt_number - 1,
         "addattempt": 1,
         "workflowstate": "",
         "applytoall": 0,
@@ -58,7 +62,7 @@ def skip(assignment_id, user_id, attempt_number):
         "assignmentid": assignment_id,
         "userid": user_id,
         "grade": 0,  # TODO Update to highest
-        "attemptnumber": attempt_number,
+        "attemptnumber": attempt_number - 1,
         "addattempt": 1,
         "workflowstate": "",
         "applytoall": 0,

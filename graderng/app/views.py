@@ -14,6 +14,7 @@ from app.permissions import TokenPermission
 def grade(request):
     data = request.data
     sub = Submission.objects.create(
+        filename=data['filename'],
         problem_name=data["problemname"],
         time_limit=data['timelimit'],
         memory_limit=data['memorylimit'],
@@ -22,6 +23,9 @@ def grade(request):
         attempt_number=data['attemptnumber'],
         assignment_id=data['assignmentid'],
         content=base64.b64decode(data['content']).decode(),
+        due_date=data['duedate'],
+        cut_off_date=data['cutoffdate'],
+        time_modified=data['timemodified']
     )
 
     tasks.grade.delay(sub.id, sub.assignment_id,
