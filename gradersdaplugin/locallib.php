@@ -7,11 +7,11 @@ class assign_submission_gradersda extends assign_submission_plugin {
     // Variable options
     public $statusoptions = array(
         'DEFAULT' => '-',
-        'PENDING' => 'Pending.',
-        'SUCCESS' => 'Successfully sent to grader.',
-        'FAILED' => 'Failed to send submission, contact assistant.',
-        'NOFILE' => 'No file submitted.',
-        'FILEDISABLED' => 'File submissions is disabled, contact asisstant.'
+        'DRAFT' => 'Draft',
+        'SUCCESS' => 'Successfully sent to grader',
+        'FAILED' => 'Failed to send submission, contact assistant',
+        'NOFILE' => 'No file submitted',
+        'FILEDISABLED' => 'File submissions is disabled, contact assistant'
     );
     public $timelimitoptions = array(1, 2, 3, 4, 5);
     public $memorylimitoptions = array(64, 128, 192, 256);
@@ -84,7 +84,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
      * Display time limit, memory limit, and status
      *
      * @param stdClass $submission
-     * @param bool $showviewlink Set this to true if the list of files is long
+     * @param bool $showviewlink Do not touch this
      * @return string
      */
     public function view_summary(stdClass $submission, & $showviewlink) {
@@ -100,7 +100,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
 
         return 'Time Limit: ' . $timelimit .
                 's | Memory Limit: ' . $memorylimit .
-                'MB | Status: ' . $status;
+                'MB<br />Status: ' . $status;
     }
 
     /**
@@ -123,14 +123,14 @@ class assign_submission_gradersda extends assign_submission_plugin {
     }
 
     /**
-     * Save the assignment and create initial status to pending
+     * Save the assignment and create initial status to draft
      *
      * @param stdClass $submission
      * @param stdClass $data
      * @return bool
      */
     public function save(stdClass $submission, stdClass $data) {
-        global $USER, $DB;
+        global $DB;
 
         $filesubmission = $this->get_file_submission($submission->id);
         if ($filesubmission) {
@@ -140,7 +140,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
             $filesubmission = new stdClass();
             $filesubmission->submission = $submission->id;
             $filesubmission->assignment = $this->assignment->get_instance()->id;
-            $filesubmission->status = $this->statusoptions['PENDING'];
+            $filesubmission->status = $this->statusoptions['DRAFT'];
             $filesubmission->id = $DB->insert_record('assignsubmission_gradersda', $filesubmission);
             return $filesubmission->id > 0;
         }
@@ -163,7 +163,8 @@ class assign_submission_gradersda extends assign_submission_plugin {
 
     /**
      * Update submission status
-     *
+     * @param stdClass $submission
+     * @param string $status
      * @return bool
      */
     public function update_submission_status(stdClass $submission, $status) {
@@ -183,10 +184,44 @@ class assign_submission_gradersda extends assign_submission_plugin {
      * @param stdClass $submission the assign_submission record being submitted.
      * @return void
      */
+    public function send_to_grader($submission, $action, $data) {
+        global $CFG;
+
+        $url = $CFG->grader_url . "/api/" . $action . "/";
+        $token = $CFG->grader_token;
+
+        $handle = curl_init($url);
+        $encodeddata = json_encode($data);
+
+        curl_setopt($handle, CURLOPT_POST, 1);
+        curl_setopt($handle, CURLOPT_POSTFIELDS, $encodeddata);
+        curl_setopt($handle, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'X-TOKEN: ' . $token]);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+        $result = curl_exec($handle);
+        $statuscode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+
+        if (!$result || $statuscode !== 200) {
+            $this->update_submission_status($submission, $this->statusoptions['FAILED']);
+        }
+
+        curl_close($handle);
+}
+
+    /**
+     * Post process submit
+     * @param stdClass $submission the assign_submission record being submitted.
+     * @return void
+     */
     public function submit_for_grading($submission) {
-        global $USER, $CFG;
+        global $USER;
 
         $ret = $this->assignment->get_submission_plugin_by_type('file');
+        $data = [
+            'userid' => (int) $USER->id,
+            'attemptnumber' => (int) $submission->attemptnumber + 1,
+            'assignmentid' => (int) $this->assignment->get_instance()->id
+        ];
 
         if ($ret->is_enabled()) {
             $fileareas = key($ret->get_file_areas());
@@ -201,41 +236,26 @@ class assign_submission_gradersda extends assign_submission_plugin {
                 $memorylimit = $this->memorylimitoptions[$this->get_config('memorylimit')];
                 $problemname = $this->get_config('problemname');
 
-                $url = $CFG->grader_url . "/api/grade";
-                $token = $CFG->grader_token;
+                $data['content'] = $contentencoded;
+                $data['timelimit'] = $timelimit;
+                $data['memorylimit'] = $memorylimit;
+                $data['problemname'] = $problemname;
+                $data['idnumber'] = $USER->idnumber;
+                $data['filename'] = $file->get_filename();
+                $data['duedate'] = $this->assignment->get_instance()->duedate;
+                $data['cutoffdate'] = $this->assignment->get_instance()->cutoffdate;
+                $data['timemodified'] = $submission->timemodified;
 
-                $handle = curl_init($url);
-
-                $data = [
-                    'content' => $contentencoded,
-                    'timelimit' => $timelimit,
-                    'memorylimit' => $memorylimit,
-                    'problemname' => $problemname,
-                    'userid' => (int) $USER->id,
-                    'attemptnumber' => (int) $submission->attemptnumber,
-                    'assignmentid' => (int) $this->assignment->get_instance()->id
-                ];
-                $encodedData = json_encode($data);
-
-                curl_setopt($handle, CURLOPT_POST, 1);
-                curl_setopt($handle, CURLOPT_POSTFIELDS, $encodedData);
-                curl_setopt($handle, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-                curl_setopt($handle, CURLOPT_HTTPHEADER, ['X_TOKEN: ' . $token]);
-                curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-
-                $result = curl_exec($handle);
-
-                // handle
+                $this->update_submission_status($submission, $this->statusoptions['SUCCESS']);
+                $this->send_to_grader($submission, 'grade', $data);
 
             } else {
                 $this->update_submission_status($submission, $this->statusoptions['NOFILE']);
-
-                // handle no file
+                $this->send_to_grader($submission, 'skip', $data);
             }
         } else {
             $this->update_submission_status($submission, $this->statusoptions['FILEDISABLED']);
-
-            // handle file disabled
+            $this->send_to_grader($submission, 'skip', $data);
         }
     }
 }

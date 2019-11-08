@@ -3,5 +3,6 @@ from django.urls import path
 from app import views
 
 urlpatterns = [
-    path('add/', views.add),
+    path("grade/", views.grade),
+    path("skip/", views.skip)
 ]

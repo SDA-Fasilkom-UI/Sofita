@@ -2,13 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User, Group
 
-from app.models import Submission
-
-
-class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'problem_name', 'user_id',
-                    'assignment_id', 'time_limit', 'memory_limit')
-    search_fields = ('user_id', 'assignment_idb')
+from app.models import Submission, Token
 
 
 class CustomUserAdmin(UserAdmin):
@@ -27,7 +21,20 @@ class CustomUserAdmin(UserAdmin):
             user.save()
 
 
+class TokenAdmin(admin.ModelAdmin):
+    list_display = ("token", "service")
+    search_fields = ("token", "service")
+    readonly_fields = ("token",)
+
+
+class SubmissionAdmin(admin.ModelAdmin):
+    list_display = ("id_number", "problem_name",
+                    "attempt_number", "assignment_id", "user_id")
+
+
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.unregister(Group)
+
 admin.site.register(Submission, SubmissionAdmin)
+admin.site.register(Token, TokenAdmin)
