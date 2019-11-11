@@ -88,6 +88,8 @@ class assign_submission_gradersda extends assign_submission_plugin {
      * @return string
      */
     public function view_summary(stdClass $submission, & $showviewlink) {
+        global $USER;
+
         $filesubmission = $this->get_file_submission($submission->id);
         if ($filesubmission) {
             $status = $filesubmission->status;
@@ -100,7 +102,9 @@ class assign_submission_gradersda extends assign_submission_plugin {
 
         return 'Time Limit: ' . $timelimit .
                 's | Memory Limit: ' . $memorylimit .
-                'MB<br />Status: ' . $status;
+                'MB<br />Assignment ID: '. $this->assignment->get_instance()->id .
+                ' | User ID: ' . $USER->id .
+                '<br />Status: ' . $status;
     }
 
     /**

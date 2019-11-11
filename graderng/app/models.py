@@ -24,6 +24,11 @@ class Submission(models.Model):
     cut_off_date = models.IntegerField()
     time_modified = models.IntegerField()
 
+    grade = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ["-time_modified"]
+
     def __str__(self):
         return "{} - {} - {}".format(self.id_number, self.problem_name, self.attempt_number)
 
