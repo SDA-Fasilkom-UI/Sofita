@@ -1,10 +1,27 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User, Group
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 
+from app import tasks
 from app.models import Submission, Token
+
+
+class AdminActions():
+    """
+    This is a class that's used only as a container
+    for functions/actions that need to be used by other ModelAdmin
+    below.
+    """
+
+    def submission_regrade(modeladmin, request, queryset):
+        for submission in queryset.all():
+            result = tasks.grade.delay(submission.id, submission.assignment_id,
+                                       submission.user_id, submission.attempt_number)
+
+        modeladmin.message_user(
+            request, "Selected submission will be regraded")
 
 
 class CustomUserAdmin(UserAdmin):
@@ -62,9 +79,10 @@ class TextFilter(InputFilter):
 
 
 class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ("id_number", "problem_name",
+    list_display = ("id", "id_number", "problem_name",
                     "attempt_number", "assignment_id", "user_id")
     list_filter = [TextFilter]
+    actions = [AdminActions.submission_regrade]
 
 
 admin.site.unregister(User)
