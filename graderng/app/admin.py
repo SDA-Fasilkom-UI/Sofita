@@ -49,6 +49,11 @@ class TokenAdmin(admin.ModelAdmin):
 # https://medium.com/@hakibenita/how-to-add-a-text-filter-to-django-admin-5d1db93772d8
 class InputFilter(admin.SimpleListFilter):
     template = 'admin/input_filter.html'
+    model_admin = None
+
+    def __init__(self, request, params, model, model_admin):
+        super().__init__(request, params, model, model_admin)
+        self.model_admin = model_admin
 
     def lookups(self, request, model_admin):
         # Dummy, required to show the filter.
@@ -70,12 +75,17 @@ class TextFilter(InputFilter):
     title = _('Assignment ID or User ID')
 
     def queryset(self, request, queryset):
-        if self.value() is not None:
-            uid = self.value()
-            return queryset.filter(
-                Q(assignment_id=uid) |
-                Q(user_id=uid)
-            )
+        try:
+            if self.value() is not None:
+                uid = self.value()
+                return queryset.filter(
+                    Q(assignment_id=uid) |
+                    Q(user_id=uid)
+                )
+        except ValueError:
+            print(request)
+            self.model_admin.message_user(request, 'Search value should only be number/integer.', messages.WARNING)
+            
 
 
 class SubmissionAdmin(admin.ModelAdmin):
