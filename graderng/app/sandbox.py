@@ -146,10 +146,6 @@ class SandboxException(Exception):
     pass
 
 
-class JavaSandboxException(Exception):
-    pass
-
-
 def get_redis_box_id():
     cmd = """
         local x = redis.call('INCRBY', KEYS[1], 1)
