@@ -60,7 +60,7 @@ class InputFilter(admin.SimpleListFilter):
         return ((),)
 
     def choices(self, changelist):
-        # Grab only the "all" opstion.
+        # Grab only the "all" option.
         all_choice = next(super().choices(changelist))
         all_choice['query_parts'] = (
             (k, v)
@@ -70,28 +70,38 @@ class InputFilter(admin.SimpleListFilter):
         yield all_choice
 
 
-class TextFilter(InputFilter):
-    parameter_name = 'ID'
-    title = _('Assignment ID or User ID')
+class AssignmentIDFilter(InputFilter):
+    parameter_name = 'assignment_id'
+    title = _('Assignment ID')
 
     def queryset(self, request, queryset):
         try:
             if self.value() is not None:
-                uid = self.value()
-                return queryset.filter(
-                    Q(assignment_id=uid) |
-                    Q(user_id=uid)
-                )
+                _id = self.value()
+                return queryset.filter(assignment_id=_id)
         except ValueError:
-            print(request)
-            self.model_admin.message_user(request, 'Search value should only be number/integer.', messages.WARNING)
-            
+            self.model_admin.message_user(
+                request, 'Search value should only be number/integer.', messages.WARNING)
+
+
+class UserIDFilter(InputFilter):
+    parameter_name = 'user_id'
+    title = _('User ID')
+
+    def queryset(self, request, queryset):
+        try:
+            if self.value() is not None:
+                _id = self.value()
+                return queryset.filter(user_id=_id)
+        except ValueError:
+            self.model_admin.message_user(
+                request, 'Search value should only be number/integer.', messages.WARNING)
 
 
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = ("id", "id_number", "problem_name",
                     "attempt_number", "assignment_id", "user_id")
-    list_filter = [TextFilter]
+    list_filter = [AssignmentIDFilter, UserIDFilter]
     actions = [AdminActions.submission_regrade]
 
 
