@@ -112,5 +112,3 @@ Data Structures and Algorithms Grader
 ## Important Notes
 
 1. Use `sqlparse==0.2.4`
-2. Server cannot access internet. Use `squid` to create proxy.
-3. Server use [ouroboros](https://github.com/pyouroboros/ouroboros) to update container automatically.
