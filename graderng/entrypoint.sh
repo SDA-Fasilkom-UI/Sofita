@@ -5,5 +5,5 @@ if [ "$1" == "celery" ]; then
 else
     python3 manage.py collectstatic --noinput
     python3 manage.py migrate
-    gunicorn graderng.wsgi --workers 3 --bind 0.0.0.0:8080
+    gunicorn graderng.wsgi --workers 3 --bind 0.0.0.0:18080
 fi

@@ -108,8 +108,8 @@ Source: https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.htm
    <VirtualHost *:80>
        ProxyPreserveHost On
 
-       ProxyPass / http://127.0.0.1:8080/
-       ProxyPassReverse / http://127.0.0.1:8080/
+       ProxyPass / http://127.0.0.1:18080/
+       ProxyPassReverse / http://127.0.0.1:18080/
    </VirtualHost>
    ```
 
