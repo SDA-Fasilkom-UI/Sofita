@@ -1,0 +1,38 @@
+version: "3.7"
+services:
+  web:
+    build: .
+    depends_on:
+      - redis
+      - mongo
+    env_file: .env
+    ports:
+      - 8080:8080
+    privileged: true
+    volumes:
+      - ${DJANGO_MEDIA_LOCATION}:/graderng/media
+
+  worker:
+    build: .
+    depends_on:
+      - redis
+      - mongo
+      - web
+    command: ["celery"]
+    env_file: .env
+    privileged: true
+    volumes:
+      - ${DJANGO_MEDIA_LOCATION}:/graderng/media
+
+  redis:
+    image: redis:5.0.6
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+
+  mongo:
+    image: mongo:4.2.1
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DBNAME}
+    volumes:
+      - ${MONGO_DATA_LOCATION}:/data/db

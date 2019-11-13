@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get(
-    'SECRET_KEY', '#d6a5ogl)__t+h8!jx)$0vi)wk7znxscg)58hm+ljncg=@^j6k')
+    'DJANGO_SECRET_KEY', '#d6a5ogl)__t+h8!jx)$0vi)wk7znxscg)58hm+ljncg=@^j6k')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get("DJANGO_ENV", "debug") == "debug")
@@ -46,6 +46,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,7 +84,11 @@ WSGI_APPLICATION = 'graderng.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'test-mongo',
+        'NAME': os.environ.get('MONGO_DBNAME', 'test-mongo'),
+        'USER': os.environ.get('MONGO_USERNAME'),
+        'PASSWORD': os.environ.get('MONGO_PASSWORD'),
+        'HOST': os.environ.get('MONGO_HOST'),
+        'PORT': int(os.environ.get('MONGO_PORT', 27017))
     }
 }
 
@@ -144,17 +151,17 @@ FILEBROWSER_MAX_UPLOAD_SIZE = 100 * 1024 * 1024
 
 # Redis
 
-REDIS_HOST = "localhost"
-
-REDIS_PORT = 6379
-
 REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
+
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+
+REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
 
 
 # Celery
 
-CELERY_BROKER_URL = os.environ.get(
-    "CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_BROKER_URL = "redis://:{}@{}:{}/0".format(
+    REDIS_PASSWORD, REDIS_HOST, REDIS_PORT)
 
 
 # SCELE
