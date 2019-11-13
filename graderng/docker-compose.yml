@@ -10,7 +10,7 @@ services:
       - mongo
     env_file: .env
     ports:
-      - 8080:8080
+      - 18080:18080
     privileged: true
     volumes:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
