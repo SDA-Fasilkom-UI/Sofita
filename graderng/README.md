@@ -36,6 +36,8 @@ Data Structures and Algorithms Grader
    DJANGO_ENV=debug
    DJANGO_MEDIA_LOCATION=/home/user/blablabla
 
+   HTTP_PROXY=
+
    MONGO_DATA_LOCATION=/home/user/mongo/gogogogo
    MONGO_DBNAME=sofita
    MONGO_USERNAME=mongousername
