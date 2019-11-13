@@ -83,6 +83,31 @@ Data Structures and Algorithms Grader
    $CFG->grader_token = "<grader_token>"
    ```
 
+## Installing control groups in Linux
+
+Isolate needs control groups feature in Linux for sandboxing contestants' programs. You need to install it:
+
+```
+sudo apt-get install cgroup-bin
+```
+
+Then, we have to enable the memory and swap accounting in control groups. Follow these steps.
+
+1. Add swap partition to your system if it does not have any. Note that a swap partition is **mandatory** for Isolate to function properly.
+1. Open the **/etc/default/grub** using sudo privilege.
+1. Modify the line containing **GRUB_CMDLINE_LINUX** as follows: ::
+   ```
+   GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"
+   ```
+1. Update the GRUB:
+   ```
+   sudo update-grub
+   ```
+1. Reboot the machine.
+1. Verify that either the **/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes** file or **/sys/fs/cgroup/memory/memory.soft_limit_in_bytes** file exists.
+
+Source: https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.html
+
 ## Apache
 
 1. Enable proxy.
