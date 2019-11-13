@@ -5,6 +5,7 @@ RUN apk update \
     python3 py3-pillow
 
 ENV ISOLATE_VERSION v1.8.1
+RUN git config --global http.proxy $HTTP_PROXY
 RUN git clone --branch $ISOLATE_VERSION --depth 1 https://github.com/ioi/isolate \
     && cd isolate \
     && make install

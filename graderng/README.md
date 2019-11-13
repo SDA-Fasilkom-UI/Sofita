@@ -5,33 +5,23 @@ Data Structures and Algorithms Grader
 ## Development
 
 1. Make sure Docker already installed and virtual environment already created.
-
 1. Install Pillow and its dependencies.
-
    ```
    pip install Pillow
    ```
-
 1. Install all requirements.
-
    ```
    pip install -r requirements.txt
    ```
-
 1. Run MongoDB.
-
    ```
    docker run --rm -d -p 27017:27017 --name=test-mongo mongo
    ```
-
 1. Run Redis.
-
    ```
    docker run --rm -d -p 6379:6379 --name test-redis redis
    ```
-
 1. Run worker.
-
    ```
    celery -A graderng worker --loglevel=info
    ```
@@ -39,7 +29,6 @@ Data Structures and Algorithms Grader
 ## Production
 
 1. Install `docker` and `docker-compose`.
-
 1. Create `.env` file.
 
    ```
@@ -63,21 +52,15 @@ Data Structures and Algorithms Grader
    ```
 
 1. Run all services.
-
    ```
    docker-compose up -d
    ```
-
 1. Create superuser.
-
    ```
    docker-compose exec web python3 manage.py createsuperuser
    ```
-
 1. Generate token for SCELE.
-
 1. Add `grader_url` and `grader_token` variable to `config.php` at SCELE.
-
    ```
    $CFG->grader_url = "<grader_url>"
    $CFG->grader_token = "<grader_token>"
@@ -95,7 +78,7 @@ Then, we have to enable the memory and swap accounting in control groups. Follow
 
 1. Add swap partition to your system if it does not have any. Note that a swap partition is **mandatory** for Isolate to function properly.
 1. Open the **/etc/default/grub** using sudo privilege.
-1. Modify the line containing **GRUB_CMDLINE_LINUX** as follows: ::
+1. Modify the line containing **GRUB_CMDLINE_LINUX** as follows:
    ```
    GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"
    ```
@@ -129,7 +112,6 @@ Source: https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.htm
    ```
 
 1. Restart service.
-
    ```
    sudo service apache2 restart
    ```

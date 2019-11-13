@@ -1,7 +1,10 @@
 version: "3.7"
 services:
   web:
-    build: .
+    build:
+      context: .
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
     depends_on:
       - redis
       - mongo
@@ -13,7 +16,10 @@ services:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 
   worker:
-    build: .
+    build:
+      context: .
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
     depends_on:
       - redis
       - mongo
