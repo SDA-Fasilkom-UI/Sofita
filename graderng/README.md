@@ -29,6 +29,8 @@ Data Structures and Algorithms Grader
 ## Production
 
 1. Install `docker` and `docker-compose`.
+1. Create **media** directory with **uploads** directory inside it.
+1. Craate **mongo** data directory.
 1. Create `.env` file.
 
    ```
@@ -96,12 +98,9 @@ Source: https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.htm
 ## Apache
 
 1. Enable proxy.
-
    ```
    sudo a2enmod proxy
-   sudo service apache2 restart
    ```
-
 1. Modify apache2 config `/etc/apache2/sites-available/000-default.conf`.
 
    ```
