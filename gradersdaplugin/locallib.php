@@ -52,19 +52,16 @@ class assign_submission_gradersda extends assign_submission_plugin {
         $mform->addHelpButton('assignsubmission_gradersda_problemname', 'problemname', 'assignsubmission_gradersda');
         $mform->setType('assignsubmission_gradersda_problemname', PARAM_TEXT);
         $mform->setDefault('assignsubmission_gradersda_problemname', $defaultproblemname);
-        $mform->hideIf('assignsubmission_gradersda_problemname', 'assignsubmission_gradersda_enabled', 'notchecked');
 
         $name = get_string('timelimit', 'assignsubmission_gradersda');
         $mform->addElement('select', 'assignsubmission_gradersda_timelimit', $name, $this->timelimitoptions);
         $mform->addHelpButton('assignsubmission_gradersda_timelimit', 'timelimit', 'assignsubmission_gradersda');
         $mform->setDefault('assignsubmission_gradersda_timelimit', $defaulttimelimit);
-        $mform->hideIf('assignsubmission_gradersda_timelimit', 'assignsubmission_gradersda_enabled', 'notchecked');
 
         $name = get_string('memorylimit', 'assignsubmission_gradersda');
         $mform->addElement('select', 'assignsubmission_gradersda_memorylimit', $name, $this->memorylimitoptions);
         $mform->addHelpButton('assignsubmission_gradersda_memorylimit', 'memorylimit', 'assignsubmission_gradersda');
         $mform->setDefault('assignsubmission_gradersda_memorylimit', $defaultmemorylimit);
-        $mform->hideIf('assignsubmission_gradersda_memorylimit', 'assignsubmission_gradersda_enabled', 'notchecked');
     }
 
     /**

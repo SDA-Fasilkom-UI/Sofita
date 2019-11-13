@@ -64,10 +64,10 @@ Data Structures and Algorithms Grader
    docker-compose exec web python3 manage.py createsuperuser
    ```
 1. Generate token for SCELE.
-1. Add `grader_url` and `grader_token` variable to `config.php` at SCELE.
+1. Add `grader_url` and `grader_token` variable to `config.php` at SCELE. Do not add trailing slash to URL.
    ```
-   $CFG->grader_url = "<grader_url>"
-   $CFG->grader_token = "<grader_token>"
+   $CFG->grader_url = '<grader_url>';
+   $CFG->grader_token = '<grader_token>';
    ```
 
 ## Installing control groups in Linux
