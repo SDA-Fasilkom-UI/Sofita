@@ -5,6 +5,7 @@ Data Structures and Algorithms Grader
 ## Development
 
 1. Make sure Docker already installed and virtual environment already created.
+1. Add your Java binary path to `$PATH`.
 1. Install Pillow and its dependencies.
    ```
    pip install Pillow

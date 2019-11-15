@@ -161,7 +161,7 @@ REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
 # Celery
 
 CELERY_BROKER_URL = "redis://:{}@{}:{}/0".format(
-    REDIS_PASSWORD, REDIS_HOST, REDIS_PORT)
+    REDIS_PASSWORD or "", REDIS_HOST, REDIS_PORT)
 
 
 # SCELE

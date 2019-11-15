@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$1" == "celery" ]; then
-    celery -A graderng worker
+    celery -A graderng worker -l info
 else
     python3 manage.py collectstatic --noinput
     python3 manage.py migrate

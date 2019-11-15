@@ -10,6 +10,15 @@ def generate_token():
 
 
 class Submission(models.Model):
+    PENDING = "P"
+    GRADING = "G"
+    DONE = "D"
+    STATUS_CHOICES = [
+        (PENDING, 'Pending'),
+        (GRADING, 'Grading'),
+        (DONE, 'Done'),
+    ]
+
     problem_name = models.CharField(max_length=256)
     filename = models.CharField(max_length=256)
     assignment_id = models.IntegerField()
@@ -25,6 +34,11 @@ class Submission(models.Model):
     time_modified = models.IntegerField()
 
     grade = models.IntegerField(default=0)
+    status = models.CharField(
+        max_length=2,
+        choices=STATUS_CHOICES,
+        default=PENDING
+    )
 
     class Meta:
         ordering = ["-time_modified"]
