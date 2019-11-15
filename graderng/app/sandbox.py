@@ -10,8 +10,8 @@ redis = redis.Redis(connection_pool=redis_connection_pool)
 
 class Sandbox:
 
-    def __init__(self, box_id):
-        self.box_id = box_id
+    def __init__(self):
+        self.box_id = None
         self.box_path = None
         self.files = set()
         self.dirs = set()
@@ -26,6 +26,8 @@ class Sandbox:
         self.dirs.add(dir)
 
     def init_isolate(self):
+        self.box_id = get_redis_box_id()
+
         cmd = ["isolate", "-b", str(self.box_id), "--cg"]
         cmd.append("--init")
 
@@ -48,52 +50,6 @@ class Sandbox:
             raise SandboxException(
                 "Cannot cleanup isolate ({})".format(p.stderr.decode()))
 
-
-class JavaSandbox(Sandbox):
-
-    def __init__(self, box_id, time_limit, memory_limit):
-        super().__init__(box_id)
-
-        self.time_limit = time_limit
-        self.memory_limit = memory_limit
-
-        self.standard_input = None
-        self.standard_output = None
-
-    def compile(self, filename):
-        compile_command = ["/bin/bash", "-c", "javac {}".format(filename)]
-        cmd = self._build_command(compile_command)
-
-        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        return p.returncode, p.stderr.decode()
-
-    def run_testcase(self, filename, input_, expected):
-        run_command = ["/bin/bash", "-c", "java {}".format(filename)]
-
-        output_filename = "_output"
-        cmd = self._build_command(
-            run_command, self.time_limit, self.memory_limit, input_, output_filename)
-
-        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        result = self.parse_meta()
-
-        if p.returncode == 0:
-            diff_command = ["/bin/bash", "-c",
-                            "diff -Z {} {}".format(expected, output_filename)]
-            cmd = self._build_command(diff_command)
-
-            q = subprocess.run(cmd, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-
-            if q.returncode == 0:
-                return "AC", result["time"]
-            else:
-                return "WA", result["time"]
-        else:
-            status = {"RE": "RTE", "TO": "TLE", "SG": "XX", "XX": "XX"}
-            return status[result["status"]], result["time"]
-
     def parse_meta(self):
         meta_path = os.path.join(self.box_path, "_isolate.meta")
         result = {}
@@ -105,7 +61,7 @@ class JavaSandbox(Sandbox):
 
         return result
 
-    def _build_command(self, command, time_limit=-1, memory_limit=-1, stdin=None, stdout=None):
+    def _build_command(self, command, time_limit=None, memory_limit=None, stdin=None, stdout=None):
         base = ["isolate", "-b", str(self.box_id), "--cg"]
 
         for directory in self.dirs:
@@ -116,12 +72,12 @@ class JavaSandbox(Sandbox):
         base.append("--cg-timing")
         base.append("--processes")
 
-        if time_limit != -1:
+        if time_limit is not None:
             base.append("--time={}".format(time_limit))
             base.append("--wall-time={}".format(time_limit + 8))
             base.append("--extra-time=0.5")
 
-        if memory_limit != -1:
+        if memory_limit is not None:
             base.append("--cg-mem={}".format(memory_limit * 1024))
             base.append("--stack={}".format(memory_limit * 1024))
 
@@ -140,6 +96,44 @@ class JavaSandbox(Sandbox):
         base.extend(command)
 
         return base
+
+
+class JavaSandbox(Sandbox):
+
+    def __init__(self):
+        super().__init__()
+
+    def compile(self, filename):
+        compile_command = ["/bin/bash", "-c", "javac {}".format(filename)]
+        cmd = self._build_command(compile_command)
+
+        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        return p.returncode, p.stderr.decode()
+
+    def run_testcase(self, filename, time_limit, memory_limit, input_, output_):
+        run_command = ["/bin/bash", "-c", "java {}".format(filename)]
+
+        actual = "_output"
+        cmd = self._build_command(
+            run_command, time_limit, memory_limit, input_, actual)
+
+        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = self.parse_meta()
+
+        if p.returncode == 0:
+            diff_command = ["/bin/bash", "-c",
+                            "diff -Z {} {}".format(output_, actual)]
+            cmd = self._build_command(diff_command)
+
+            q = subprocess.run(cmd, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+
+            return "AC" if q.returncode == 0 else "WA", result["time"]
+
+        else:
+            status = {"RE": "RTE", "TO": "TLE", "SG": "XX", "XX": "XX"}
+            return status[result["status"]], result["time"]
 
 
 class SandboxException(Exception):

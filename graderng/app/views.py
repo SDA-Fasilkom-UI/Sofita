@@ -1,6 +1,6 @@
 import base64
 
-from django.http import JsonResponse
+from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
@@ -45,3 +45,7 @@ def skip(request):
     tasks.skip.delay(assignment_id, user_id, attempt_number)
 
     return Response({"message": "ok"})
+
+
+def hello(request):
+    return HttpResponse("Hello")

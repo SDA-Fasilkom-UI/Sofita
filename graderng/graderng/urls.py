@@ -28,5 +28,5 @@ filebrowser_site.add_action(validate_and_extract)
 urlpatterns = [
     path('admin/filebrowser/', filebrowser_site.urls),
     path('admin/', admin.site.urls),
-    path("api/", include("app.urls"))
+    path("", include("app.urls"))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

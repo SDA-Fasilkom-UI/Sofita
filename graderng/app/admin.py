@@ -2,26 +2,9 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User, Group
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Q
 
 from app import tasks
 from app.models import Submission, Token
-
-
-class AdminActions():
-    """
-    This is a class that's used only as a container
-    for functions/actions that need to be used by other ModelAdmin
-    below.
-    """
-
-    def submission_regrade(modeladmin, request, queryset):
-        for submission in queryset.all():
-            result = tasks.grade.delay(submission.id, submission.assignment_id,
-                                       submission.user_id, submission.attempt_number)
-
-        modeladmin.message_user(
-            request, "Selected submission will be regraded")
 
 
 class CustomUserAdmin(UserAdmin):
@@ -44,6 +27,25 @@ class TokenAdmin(admin.ModelAdmin):
     list_display = ("token", "service")
     search_fields = ("token", "service")
     readonly_fields = ("token",)
+
+
+class SubmissionAdminActions():
+    """
+    This is a class that's used only as a container
+    for functions/actions that need to be used by other ModelAdmin
+    below.
+    """
+
+    def regrade_submissions(modeladmin, request, queryset):
+        for submission in queryset.all():
+            submission.status = Submission.PENDING
+            submission.save()
+
+            tasks.grade.delay(submission.id, submission.assignment_id,
+                              submission.user_id, submission.attempt_number)
+
+        modeladmin.message_user(
+            request, "Selected submission will be regraded")
 
 
 # https://medium.com/@hakibenita/how-to-add-a-text-filter-to-django-admin-5d1db93772d8
@@ -99,10 +101,12 @@ class UserIDFilter(InputFilter):
 
 
 class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ("id", "id_number", "problem_name",
-                    "attempt_number", "assignment_id", "user_id")
+    list_display = ("id", "id_number", "problem_name", "attempt_number",
+                    "assignment_id", "user_id", "grade", "status")
+    readonly_fields = ("grade", "status", "assignment_id", "user_id", "id_number",
+                       "attempt_number", "due_date", "cut_off_date", "time_modified")
     list_filter = [AssignmentIDFilter, UserIDFilter]
-    actions = [AdminActions.submission_regrade]
+    actions = [SubmissionAdminActions.regrade_submissions]
 
 
 admin.site.unregister(User)
