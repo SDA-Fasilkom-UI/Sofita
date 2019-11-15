@@ -140,7 +140,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # FileBrowser
 
-FILEBROWSER_DIRECTORY = os.environ("DJANGO_UPLOADS_DIRECTORY", 'uploads/')
+FILEBROWSER_DIRECTORY = os.environ.get("DJANGO_UPLOADS_DIRECTORY", 'uploads/')
 
 FILEBROWSER_EXTENSIONS = {
     'Testcase': ['.in', '.out', '.zip']
