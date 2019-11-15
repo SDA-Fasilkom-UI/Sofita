@@ -106,10 +106,16 @@ Source: https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.htm
 
    ```
    <VirtualHost *:80>
-       ProxyPreserveHost On
+      ProxyPreserveHost On
 
-       ProxyPass / http://127.0.0.1:18080/
-       ProxyPassReverse / http://127.0.0.1:18080/
+      Alias /media /home/ragil/media-data
+      <Directory /home/ragil/media-data>
+           Require all granted
+      </Directory>
+
+      ProxyPassMatch ^/media !
+      ProxyPass / http://127.0.0.1:18080/
+      ProxyPassReverse / http://127.0.0.1:18080/
    </VirtualHost>
    ```
 
