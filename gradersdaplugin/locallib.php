@@ -85,8 +85,6 @@ class assign_submission_gradersda extends assign_submission_plugin {
      * @return string
      */
     public function view_summary(stdClass $submission, & $showviewlink) {
-        global $USER;
-
         $filesubmission = $this->get_file_submission($submission->id);
         if ($filesubmission) {
             $status = $filesubmission->status;
@@ -100,7 +98,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
         return 'Time Limit: ' . $timelimit .
                 's | Memory Limit: ' . $memorylimit .
                 'MB<br />Assignment ID: '. $this->assignment->get_instance()->id .
-                ' | User ID: ' . $USER->id .
+                ' | User ID: ' . $submission->userid .
                 '<br />Status: ' . $status;
     }
 
@@ -121,6 +119,17 @@ class assign_submission_gradersda extends assign_submission_plugin {
     private function get_file_submission($submissionid) {
         global $DB;
         return $DB->get_record('assignsubmission_gradersda', array('submission'=>$submissionid));
+    }
+
+    /**
+     * Get user information from the database
+     *
+     * @param int $userid
+     * @return mixed
+     */
+    private function get_user($userid) {
+        global $DB;
+        return $DB->get_record('user', array('id'=>$userid));
     }
 
     /**
@@ -215,11 +224,10 @@ class assign_submission_gradersda extends assign_submission_plugin {
      * @return void
      */
     public function submit_for_grading($submission) {
-        global $USER;
-
+        $user = $this->get_user($submission->userid);
         $ret = $this->assignment->get_submission_plugin_by_type('file');
         $data = [
-            'userid' => (int) $USER->id,
+            'userid' => (int) $user->id,
             'attemptnumber' => (int) $submission->attemptnumber + 1,
             'assignmentid' => (int) $this->assignment->get_instance()->id
         ];
@@ -241,7 +249,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
                 $data['timelimit'] = $timelimit;
                 $data['memorylimit'] = $memorylimit;
                 $data['problemname'] = $problemname;
-                $data['idnumber'] = $USER->idnumber;
+                $data['idnumber'] = $user->idnumber;
                 $data['filename'] = $file->get_filename();
                 $data['duedate'] = $this->assignment->get_instance()->duedate;
                 $data['cutoffdate'] = $this->assignment->get_instance()->cutoffdate;

@@ -100,12 +100,26 @@ class UserIDFilter(InputFilter):
                 request, 'Search value should only be number/integer.', messages.WARNING)
 
 
+class IDNumberFilter(InputFilter):
+    parameter_name = 'id_number'
+    title = _('ID Number')
+
+    def queryset(self, request, queryset):
+        try:
+            if self.value() is not None:
+                _id = self.value()
+                return queryset.filter(id_number=_id)
+        except ValueError:
+            self.model_admin.message_user(
+                request, 'Search value should only be number/integer.', messages.WARNING)
+
+
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = ("id", "id_number", "problem_name", "attempt_number",
                     "assignment_id", "user_id", "grade", "status")
     readonly_fields = ("grade", "status", "assignment_id", "user_id", "id_number",
                        "attempt_number", "due_date", "cut_off_date", "time_modified")
-    list_filter = [AssignmentIDFilter, UserIDFilter]
+    list_filter = [AssignmentIDFilter, UserIDFilter, IDNumberFilter]
     actions = [SubmissionAdminActions.regrade_submissions]
 
 
