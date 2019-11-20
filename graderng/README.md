@@ -108,8 +108,8 @@ Source: https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.htm
    <VirtualHost *:80>
       ProxyPreserveHost On
 
-      Alias /media /home/ragil/media-data
-      <Directory /home/ragil/media-data>
+      Alias /media [media-path]
+      <Directory [media-path]>
            Require all granted
       </Directory>
 
