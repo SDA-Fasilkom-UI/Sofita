@@ -1,12 +1,33 @@
 import base64
+import os
 
 from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from app import tasks
+from app.grader import get_problems_path
 from app.models import Submission
 from app.permissions import TokenPermission
+
+
+@api_view(['GET'])
+def problems(request):
+    query = request.GET.get("query", "")
+
+    problems_path = get_problems_path()
+    all_dirs = os.listdir(problems_path)
+
+    result_dirs = []
+    for dir_ in all_dirs:
+        if len(result_dirs) >= 5:
+            break
+
+        dir_path = os.path.join(problems_path, dir_)
+        if os.path.isdir(dir_path) and query in dir_:
+            result_dirs.append(dir_)
+
+    return Response(result_dirs)
 
 
 @api_view(['POST'])

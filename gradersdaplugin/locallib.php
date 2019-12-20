@@ -31,6 +31,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
      * @return void
      */
     public function get_settings(MoodleQuickForm $mform) {
+        global $CFG;
 
         $defaulttimelimit = $this->get_config('timelimit');
         if (!$defaulttimelimit) {
@@ -44,13 +45,16 @@ class assign_submission_gradersda extends assign_submission_plugin {
 
         $defaultproblemname = $this->get_config('problemname');
         if (!$defaultproblemname) {
-            $defaultproblemname = $this->statusoptions['DEFAULT'];
+            $defaultproblemname = "-";
         }
 
         $name = get_string('problemname', 'assignsubmission_gradersda');
-        $mform->addElement('text', 'assignsubmission_gradersda_problemname', $name);
+        $options = array(
+            'ajax' => 'assignsubmission_gradersda/autocomplete_problems',
+            'data-grader_url' => $CFG->grader_url,
+        );
+        $mform->addElement('autocomplete', 'assignsubmission_gradersda_problemname', $name, array(), $options);
         $mform->addHelpButton('assignsubmission_gradersda_problemname', 'problemname', 'assignsubmission_gradersda');
-        $mform->setType('assignsubmission_gradersda_problemname', PARAM_TEXT);
         $mform->setDefault('assignsubmission_gradersda_problemname', $defaultproblemname);
 
         $name = get_string('timelimit', 'assignsubmission_gradersda');
