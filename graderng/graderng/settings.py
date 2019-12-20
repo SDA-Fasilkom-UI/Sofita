@@ -41,15 +41,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'corsheaders',
     'app'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -170,3 +172,8 @@ SCELE_URL = os.environ.get(
     "SCELE_URL", "http://127.0.0.1/webservice/rest/server.php")
 
 SCELE_TOKEN = os.environ.get("SCELE_TOKEN", "887bfe50daa8b8e518dd38e3832199b6")
+
+
+# CORS
+
+CORS_ORIGIN_ALLOW_ALL = True
