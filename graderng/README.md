@@ -30,7 +30,8 @@ Data Structures and Algorithms Grader
 ## Production
 
 1. Install `docker` and `docker-compose`.
-1. Create **media** directory with **uploads** directory inside it.
+1. Create **media** directory with random directory name inside it. Don't forget
+   to assign `DJANGO_UPLOADS_DIRECTORY` with this name later.
 1. Craate **mongo** data directory.
 1. Create `.env` file.
 
@@ -38,6 +39,7 @@ Data Structures and Algorithms Grader
    DJANGO_SECRET_KEY=thisissecretkey
    DJANGO_ENV=debug
    DJANGO_MEDIA_LOCATION=/home/user/blablabla
+   DJANGO_UPLOADS_DIRECTORY=randomdirectoryinsidemedia/
 
    HTTP_PROXY=
 
@@ -71,7 +73,7 @@ Data Structures and Algorithms Grader
    $CFG->grader_token = '<grader_token>';
    ```
 
-## Installing control groups in Linux
+## Installing Control Groups in Linux
 
 Isolate needs control groups feature in Linux for sandboxing contestants' programs. You need to install it:
 
