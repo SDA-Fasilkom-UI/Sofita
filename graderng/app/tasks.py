@@ -68,7 +68,15 @@ def send_feedback(assignment_id, user_id, attempt_number, feedback, add_attempt=
         "plugindata[assignfeedbackcomments_editor][format]": 0
     }
 
-    r = requests.post(url, params=params, data=data)
+    if len(os.environ.get("HTTP_PROXY")) == 0:
+        r = requests.post(url, params=params, data=data)
+    else:
+        proxies = {
+            "http": os.environ.get("HTTP_PROXY"),
+            "https": os.environ.get("HTTP_PROXY")
+        }
+        r = requests.post(url, params=params, data=data, proxies=proxies)
+
     return r.status_code, r.text
 
 
