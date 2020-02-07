@@ -54,7 +54,10 @@ def send_feedback(assignment_id, user_id, attempt_number, feedback, add_attempt=
         assignment_id=assignment_id,
         user_id=user_id
     )
-    max_grade = subs.aggregate(Max("grade"))["grade__max"]
+    if len(subs) > 0:
+        max_grade = subs.aggregate(Max("grade"))["grade__max"]
+    else:
+        max_grade = 0
 
     data = {
         "assignmentid": assignment_id,
