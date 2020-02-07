@@ -69,4 +69,9 @@ def skip(request):
 
 
 def hello(request):
-    return HttpResponse("Hello")
+    response = """
+    Hello <br />
+    <button onclick="window.location.href = '/admin';">Go to Admin Page</button>
+    """
+
+    return HttpResponse(response)
