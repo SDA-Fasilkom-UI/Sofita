@@ -9,8 +9,8 @@ class assign_submission_gradersda extends assign_submission_plugin {
         'DEFAULT' => '-',
         'DRAFT' => 'Draft',
         'SUCCESS' => 'Successfully sent to grader',
-        'FAILED' => 'Failed to send submission, contact assistant',
-        'NOFILE' => 'No file submitted',
+        'FAILED' => 'Failed to send submission, retry later',
+        'NOFILE' => 'Only one file allowed',
         'FILEDISABLED' => 'File submissions is disabled, contact assistant'
     );
     public $timelimitoptions = array(1, 2, 3, 4, 5);
@@ -196,12 +196,13 @@ class assign_submission_gradersda extends assign_submission_plugin {
     /**
      * Send submission to grader
      * @param stdClass $submission the assign_submission record being submitted.
+     * @param data $data data to be submitted
      * @return void
      */
-    public function send_to_grader($submission, $action, $data) {
+    public function send_to_grader($submission, $data) {
         global $CFG;
 
-        $url = $CFG->grader_url . "/api/" . $action . "/";
+        $url = $CFG->grader_url . "/api/grade/";
         $token = $CFG->grader_token;
 
         $handle = curl_init($url);
@@ -215,19 +216,22 @@ class assign_submission_gradersda extends assign_submission_plugin {
         $result = curl_exec($handle);
         $statuscode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
 
+        $sent = true;
         if (!$result || $statuscode !== 200) {
-            $this->update_submission_status($submission, $this->statusoptions['FAILED']);
+            $sent = false;
         }
 
         curl_close($handle);
-}
+        return $sent;
+    }
 
     /**
-     * Post process submit
+     * Precheck submission
      * @param stdClass $submission the assign_submission record being submitted.
-     * @return void
+     * @return bool|string 'true' if OK to proceed with submission, otherwise a
+     *                        a message to display to the user
      */
-    public function submit_for_grading($submission) {
+    public function precheck_submission($submission) {
         $user = $this->get_user($submission->userid);
         $ret = $this->assignment->get_submission_plugin_by_type('file');
         $data = [
@@ -236,39 +240,44 @@ class assign_submission_gradersda extends assign_submission_plugin {
             'assignmentid' => (int) $this->assignment->get_instance()->id
         ];
 
-        if ($ret->is_enabled()) {
-            $fileareas = key($ret->get_file_areas());
-            $fs = get_file_storage();
-            $files = $fs->get_area_files($this->assignment->get_context()->id, 'assignsubmission_file', $fileareas, $submission->id, 'id', false);
-            if (count($files) >= 1) {
-                $file = array_values($files)[0];
-                $content = $file->get_content();
-                $contentencoded = base64_encode($content);
-
-                $timelimit = $this->timelimitoptions[$this->get_config('timelimit')];
-                $memorylimit = $this->memorylimitoptions[$this->get_config('memorylimit')];
-                $problemname = $this->get_config('problemname');
-
-                $data['content'] = $contentencoded;
-                $data['timelimit'] = $timelimit;
-                $data['memorylimit'] = $memorylimit;
-                $data['problemname'] = $problemname;
-                $data['idnumber'] = $user->idnumber;
-                $data['filename'] = $file->get_filename();
-                $data['duedate'] = $this->assignment->get_instance()->duedate;
-                $data['cutoffdate'] = $this->assignment->get_instance()->cutoffdate;
-                $data['timemodified'] = $submission->timemodified;
-
-                $this->update_submission_status($submission, $this->statusoptions['SUCCESS']);
-                $this->send_to_grader($submission, 'grade', $data);
-
-            } else {
-                $this->update_submission_status($submission, $this->statusoptions['NOFILE']);
-                $this->send_to_grader($submission, 'skip', $data);
-            }
-        } else {
-            $this->update_submission_status($submission, $this->statusoptions['FILEDISABLED']);
-            $this->send_to_grader($submission, 'skip', $data);
+        if (!$ret->is_enabled()) {
+            return $this->statusoptions['FILEDISABLED'];
         }
+
+        $fileareas = key($ret->get_file_areas());
+        $fs = get_file_storage();
+        $files = $fs->get_area_files($this->assignment->get_context()->id, 'assignsubmission_file', $fileareas, $submission->id, 'id', false);
+        
+        if (count($files) < 1 || count($files) > 1) {
+            return $this->statusoptions['NOFILE'];
+        }
+        
+        $file = array_values($files)[0];
+        $content = $file->get_content();
+        $contentencoded = base64_encode($content);
+
+        $timelimit = $this->timelimitoptions[$this->get_config('timelimit')];
+        $memorylimit = $this->memorylimitoptions[$this->get_config('memorylimit')];
+        $problemname = $this->get_config('problemname');
+
+        $data['content'] = $contentencoded;
+        $data['timelimit'] = $timelimit;
+        $data['memorylimit'] = $memorylimit;
+        $data['problemname'] = $problemname;
+        $data['idnumber'] = $user->idnumber;
+        $data['filename'] = $file->get_filename();
+        $data['duedate'] = $this->assignment->get_instance()->duedate;
+        $data['cutoffdate'] = $this->assignment->get_instance()->cutoffdate;
+        $data['timemodified'] = $submission->timemodified;
+                
+        $sent = $this->send_to_grader($submission, $data);
+
+        if (!$sent) {
+            $this->update_submission_status($submission, $this->statusoptions['FAILED']);
+            return $this->statusoptions['FAILED'];
+        }
+
+        $this->update_submission_status($submission, $this->statusoptions['SUCCESS']);
+        return true;
     }
 }
