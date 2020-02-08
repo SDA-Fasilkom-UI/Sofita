@@ -49,8 +49,8 @@ def grade(request):
         time_modified=data['timemodified']
     )
 
-    tasks.grade.delay(sub.id, sub.assignment_id,
-                      sub.user_id, sub.attempt_number)
+    tasks.grade.apply_async((sub.id, sub.assignment_id,
+                             sub.user_id, sub.attempt_number), countdown=60)
 
     return Response({"message": "ok"})
 

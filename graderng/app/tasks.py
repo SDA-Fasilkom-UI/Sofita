@@ -1,5 +1,6 @@
 import os
 
+import random
 import requests
 
 from celery import shared_task
@@ -15,10 +16,12 @@ def grade(submission_id, assignment_id, user_id, attempt_number):
     sub = Submission.objects.filter(id=submission_id).first()
 
     if sub is None:
-        return send_feedback(
+        send_feedback.delay(
             assignment_id, user_id, attempt_number,
             submission_not_found_feedback()
         )
+
+        return "Not OK"
 
     sub.status = Submission.GRADING
     sub.save()
@@ -29,20 +32,24 @@ def grade(submission_id, assignment_id, user_id, attempt_number):
     sub.grade = grade
     sub.save()
 
-    return send_feedback(assignment_id, user_id, attempt_number, feedback)
+    send_feedback.delay(assignment_id, user_id, attempt_number, feedback)
+
+    return "OK"
 
 
 @shared_task
 def skip(assignment_id, user_id, attempt_number):
-    return send_feedback(
+    send_feedback.delay(
         assignment_id,
         user_id,
         attempt_number,
         submission_skipped_feedback()
     )
+    return "OK"
 
 
-def send_feedback(assignment_id, user_id, attempt_number, feedback, add_attempt=True):
+@shared_task(bind=True, max_retries=10)
+def send_feedback(self, assignment_id, user_id, attempt_number, feedback, add_attempt=True):
     url = settings.SCELE_URL
     params = {
         "wstoken": settings.SCELE_TOKEN,
@@ -71,14 +78,18 @@ def send_feedback(assignment_id, user_id, attempt_number, feedback, add_attempt=
         "plugindata[assignfeedbackcomments_editor][format]": 0
     }
 
-    if len(os.environ.get("HTTP_PROXY", "")) == 0:
-        r = requests.post(url, params=params, data=data)
-    else:
-        proxies = {
-            "http": os.environ.get("HTTP_PROXY"),
-            "https": os.environ.get("HTTP_PROXY")
-        }
-        r = requests.post(url, params=params, data=data, proxies=proxies)
+    try:
+        if len(os.environ.get("HTTP_PROXY", "")) == 0:
+            r = requests.post(url, params=params, data=data)
+        else:
+            proxies = {
+                "http": os.environ.get("HTTP_PROXY"),
+                "https": os.environ.get("HTTP_PROXY")
+            }
+            r = requests.post(url, params=params, data=data, proxies=proxies)
+    except Exception as exc:
+        rand = random.uniform(2, 4)
+        self.retry(exc=exc, countdown=rand ** self.request.retries)
 
     return r.status_code, r.text
 
