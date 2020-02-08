@@ -50,7 +50,7 @@ def grade(request):
     )
 
     tasks.grade.apply_async((sub.id, sub.assignment_id,
-                             sub.user_id, sub.attempt_number), countdown=60)
+                             sub.user_id, sub.attempt_number), countdown=1)
 
     return Response({"message": "ok"})
 

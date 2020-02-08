@@ -11,7 +11,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
         'SUCCESS' => 'Successfully sent to grader',
         'FAILED' => 'Failed to send submission, retry later',
         'NOFILE' => 'Only one file allowed',
-        'FILEDISABLED' => 'File submissions is disabled, contact assistant'
+        'FILEDISABLED' => 'File submission is disabled, contact assistant'
     );
     public $timelimitoptions = array(1, 2, 3, 4, 5);
     public $memorylimitoptions = array(64, 128, 192, 256);
