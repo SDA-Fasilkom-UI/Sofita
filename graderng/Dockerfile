@@ -12,10 +12,13 @@ RUN git clone --branch $ISOLATE_VERSION --depth 1 https://github.com/ioi/isolate
     && make install
 
 RUN mkdir /graderng
-COPY . /graderng
 WORKDIR /graderng
+
+COPY requirements.txt /graderng/requirements.txt
 
 RUN if [ ! -z "$HTTP_PROXY" ]; then pip3 --proxy $HTTP_PROXY install -r requirements.txt; \
     else pip3 install -r requirements.txt; fi
+
+COPY . /graderng
 
 ENTRYPOINT ["./entrypoint.sh"]
