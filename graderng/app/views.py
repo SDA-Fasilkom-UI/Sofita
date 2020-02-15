@@ -30,6 +30,11 @@ def problems(request):
     return Response(result_dirs)
 
 
+@api_view(['GET'])
+def check(request):
+    return Response({"message": "ok"})
+
+
 @api_view(['POST'])
 @permission_classes([TokenPermission])
 def grade(request):
