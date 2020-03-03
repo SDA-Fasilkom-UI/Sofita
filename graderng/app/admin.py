@@ -36,6 +36,7 @@ class SubmissionAdminActions():
     below.
     """
 
+    @staticmethod
     def regrade_submissions(modeladmin, request, queryset):
         for submission in queryset.all():
             submission.status = Submission.PENDING
