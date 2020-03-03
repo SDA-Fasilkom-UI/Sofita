@@ -122,6 +122,12 @@ class SubmissionAdmin(admin.ModelAdmin):
     list_filter = [AssignmentIDFilter, UserIDFilter, IDNumberFilter]
     actions = [SubmissionAdminActions.regrade_submissions]
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
 
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
