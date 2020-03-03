@@ -64,7 +64,7 @@ ROOT_URLCONF = 'graderng.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -171,7 +171,7 @@ CELERY_BROKER_URL = "redis://:{}@{}:{}/0".format(
 SCELE_URL = os.environ.get(
     "SCELE_URL", "http://127.0.0.1/webservice/rest/server.php")
 
-SCELE_TOKEN = os.environ.get("SCELE_TOKEN", "887bfe50daa8b8e518dd38e3832199b6")
+SCELE_TOKEN = os.environ.get("SCELE_TOKEN", "3c3912a9e1c84b749892aa98cf403512")
 
 
 # CORS
