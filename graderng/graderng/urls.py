@@ -20,7 +20,7 @@ from django.urls import include, path
 
 from filebrowser.sites import site as filebrowser_site
 
-from app.actions import validate_and_extract
+from grader.actions import validate_and_extract
 
 
 filebrowser_site.add_action(validate_and_extract)
@@ -28,5 +28,6 @@ filebrowser_site.add_action(validate_and_extract)
 urlpatterns = [
     path('admin/filebrowser/', filebrowser_site.urls),
     path('admin/', admin.site.urls),
-    path("", include("app.urls"))
+    path("", include("app.urls")),
+    path("", include("grader.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

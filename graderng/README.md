@@ -75,7 +75,7 @@ Data Structures and Algorithms Grader
 
 ## Installing Control Groups in Linux
 
-Isolate needs control groups feature in Linux for sandboxing contestants' programs. You need to install it:
+Isolate needs control groups feature in Linux for sandboxing submissions. You need to install it:
 
 ```
 sudo apt-get install cgroup-bin
