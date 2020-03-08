@@ -10,4 +10,4 @@ class TokenPermission(BasePermission):
             return False
 
         token = Token.objects.filter(token=token)
-        return token.count() == 1
+        return token.exists()

@@ -7,8 +7,12 @@ from celery import shared_task
 from django.conf import settings
 from django.db.models import Max
 
-from app.models import Submission
-from app.grader import grade_submission
+from grader.constants import (
+    SUBMISSION_SKIPPED,
+    SUBMISSION_NOT_FOUND
+)
+from grader.models import Submission
+from grader.runner import JavaRunner
 
 
 @shared_task
@@ -18,15 +22,15 @@ def grade(submission_id, assignment_id, user_id, attempt_number):
     if sub is None:
         send_feedback.delay(
             assignment_id, user_id, attempt_number,
-            submission_not_found_feedback()
+            SUBMISSION_NOT_FOUND
         )
 
-        return "Not OK"
+        return "FAIL"
 
     sub.status = Submission.GRADING
     sub.save()
 
-    grade, feedback = grade_submission(sub)
+    grade, feedback = JavaRunner(sub).grade_submission()
 
     sub.status = Submission.DONE
     sub.grade = grade
@@ -43,7 +47,7 @@ def skip(assignment_id, user_id, attempt_number):
         assignment_id,
         user_id,
         attempt_number,
-        submission_skipped_feedback()
+        SUBMISSION_SKIPPED
     )
     return "OK"
 
@@ -75,7 +79,7 @@ def send_feedback(self, assignment_id, user_id, attempt_number, feedback, add_at
         "workflowstate": "",
         "applytoall": 0,
         "plugindata[assignfeedbackcomments_editor][text]": feedback,
-        "plugindata[assignfeedbackcomments_editor][format]": 0
+        "plugindata[assignfeedbackcomments_editor][format]": 1  # HTML
     }
 
     try:
@@ -91,15 +95,4 @@ def send_feedback(self, assignment_id, user_id, attempt_number, feedback, add_at
         rand = random.uniform(2, 4)
         self.retry(exc=exc, countdown=rand ** self.request.retries)
 
-    return r.status_code, r.text
-
-
-def submission_skipped_feedback():
-    html = "<b>Skipped</b>"
-    return html
-
-
-def submission_not_found_feedback():
-    html = "<p><b>Error | Attempt Grade: 0</b></p>"
-    html += "<p>Submission is not found on grader, contact assistant</p>"
-    return html
+    return (r.status_code, r.text)

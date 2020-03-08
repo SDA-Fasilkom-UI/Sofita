@@ -265,11 +265,11 @@ class assign_submission_gradersda extends assign_submission_plugin {
         $fileareas = key($ret->get_file_areas());
         $fs = get_file_storage();
         $files = $fs->get_area_files($this->assignment->get_context()->id, 'assignsubmission_file', $fileareas, $submission->id, 'id', false);
-        
+
         if (count($files) < 1 || count($files) > 1) {
             return $this->statusoptions['NOFILE'];
         }
-                
+
         $sent = $this->check_grader($submission, $data);
         if (!$sent) {
             $this->update_submission_status($submission, $this->statusoptions['FAILED']);
