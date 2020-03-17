@@ -6,9 +6,9 @@ Data Structures and Algorithms Grader
 
 1. Make sure Docker already installed and virtual environment already created.
 1. Add your Java binary path to `$PATH`.
-1. Install Pillow, lupa and its dependencies.
+1. Install Pillow, lupa, and lxml.
    ```
-   pip install Pillow lupa
+   pip install Pillow lupa lxml
    ```
 1. Install all requirements.
    ```
