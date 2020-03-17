@@ -1,4 +1,7 @@
+import datetime
+
 from djongo import models
+from django.utils import timezone
 
 
 class Submission(models.Model):
@@ -39,3 +42,8 @@ class Submission(models.Model):
         if not self.id_number:
             return "UserID({}) - {}({})".format(self.user_id, self.problem_name, self.attempt_number)
         return "{} - {}({})".format(self.id_number, self.problem_name, self.attempt_number)
+
+    @property
+    def formatted_time_modified(self):
+        dt = datetime.datetime.fromtimestamp(self.time_modified)
+        return timezone.make_aware(dt)
