@@ -1,7 +1,7 @@
 FROM openjdk:8-alpine3.9
 
 RUN apk update \
-    && apk add --no-cache bash git make gcc libcap-dev musl-dev diffutils \
+    && apk add --no-cache bash git make gcc libcap-dev musl-dev diffutils tzdata \
     python3 py3-pillow py3-lxml
 
 RUN if [ ! -z "$HTTP_PROXY" ]; then git config --global http.proxy $HTTP_PROXY; fi
