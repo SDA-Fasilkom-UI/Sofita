@@ -20,4 +20,4 @@ class ProxyRequests():
     @classmethod
     def post(cls, *args, **kwargs):
         kwargs["proxies"] = cls.proxies
-        return requests.get(*args, **kwargs)
+        return requests.post(*args, **kwargs)
