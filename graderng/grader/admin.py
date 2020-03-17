@@ -11,12 +11,10 @@ class SubmissionAdminActions():
 
     @staticmethod
     def regrade_submissions(modeladmin, request, queryset):
+        queryset.update(status=Submission.PENDING)
         for submission in queryset.all():
-            submission.status = Submission.PENDING
-            submission.save()
-
-            tasks.grade.delay(submission.id, submission.assignment_id,
-                              submission.user_id, submission.attempt_number)
+            tasks.grade.apply_async((submission.id, submission.assignment_id,
+                                     submission.user_id, submission.attempt_number), priority=3)
 
         modeladmin.message_user(
             request, "Selected submission will be regraded")

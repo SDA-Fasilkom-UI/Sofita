@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'app',
     'grader',
+    'moss',
 ]
 
 MIDDLEWARE = [
@@ -120,7 +121,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Jakarta'
 
 USE_I18N = True
 
@@ -178,3 +179,13 @@ SCELE_TOKEN = os.environ.get("SCELE_TOKEN", "3c3912a9e1c84b749892aa98cf403512")
 # CORS
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+
+# PROXY
+
+HTTP_PROXY = os.environ.get("HTTP_PROXY")
+
+
+# MOSS
+
+MOSS_USER_ID = os.environ.get("MOSS_USER_ID")
