@@ -87,4 +87,4 @@ def send_feedback(self, assignment_id, user_id, attempt_number, feedback, add_at
         rand = random.uniform(2, 4)
         self.retry(exc=exc, countdown=rand ** self.request.retries)
 
-    return ("OK", r.status_code)
+    return (r.status_code, r.text)
