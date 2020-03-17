@@ -17,6 +17,12 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
 
+# Priority options
+app.conf.broker_transport_options = {
+    'priority_steps': list(range(7)),
+    'queue_order_strategy': 'priority',
+}
+
 
 @app.task(bind=True)
 def debug_task(self):

@@ -1,5 +1,3 @@
-import os
-
 import random
 import requests
 
@@ -7,6 +5,7 @@ from celery import shared_task
 from django.conf import settings
 from django.db.models import Max
 
+from app.proxy_requests import ProxyRequests
 from grader.constants import (
     SUBMISSION_SKIPPED,
     SUBMISSION_NOT_FOUND
@@ -41,7 +40,7 @@ def grade(submission_id, assignment_id, user_id, attempt_number):
     return "OK"
 
 
-@shared_task
+@shared_task(priority=0)
 def skip(assignment_id, user_id, attempt_number):
     send_feedback.delay(
         assignment_id,
@@ -52,7 +51,7 @@ def skip(assignment_id, user_id, attempt_number):
     return "OK"
 
 
-@shared_task(bind=True, max_retries=10)
+@shared_task(bind=True, max_retries=10, priority=0)
 def send_feedback(self, assignment_id, user_id, attempt_number, feedback, add_attempt=True):
     url = settings.SCELE_URL
     params = {
@@ -83,16 +82,9 @@ def send_feedback(self, assignment_id, user_id, attempt_number, feedback, add_at
     }
 
     try:
-        if len(os.environ.get("HTTP_PROXY", "")) == 0:
-            r = requests.post(url, params=params, data=data)
-        else:
-            proxies = {
-                "http": os.environ.get("HTTP_PROXY"),
-                "https": os.environ.get("HTTP_PROXY")
-            }
-            r = requests.post(url, params=params, data=data, proxies=proxies)
+        r = ProxyRequests.post(url, params=params, data=data)
     except Exception as exc:
         rand = random.uniform(2, 4)
         self.retry(exc=exc, countdown=rand ** self.request.retries)
 
-    return (r.status_code, r.text)
+    return ("OK", r.status_code)

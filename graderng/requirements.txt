@@ -1,3 +1,4 @@
+beautifulsoup4==4.8.2
 celery==4.3.0
 django-cors-headers==3.2.0
 django-filebrowser-no-grappelli==3.7.8
@@ -6,6 +7,7 @@ djangorestframework==3.10.3
 djongo==1.2.36
 fakeredis==1.2.1
 gunicorn==20.0.0
+lxml==4.5.0
 redis==3.3.11
 requests==2.22.0
 sqlparse==0.2.4
