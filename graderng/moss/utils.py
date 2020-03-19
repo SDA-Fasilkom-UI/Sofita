@@ -65,7 +65,8 @@ class Uploader():
         s.send(content.encode())
 
     def send(self):
-        s, _, _ = ProxySocket.connect((self.server, self.port))
+        s = ProxySocket.socket()
+        s.connect((self.server, self.port))
 
         s.send("moss {}\n".format(self.user_id).encode())
         s.send("directory {}\n".format(self.options['d']).encode())

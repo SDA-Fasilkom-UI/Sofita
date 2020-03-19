@@ -7,6 +7,7 @@ djangorestframework==3.10.3
 djongo==1.2.36
 fakeredis==1.2.1
 gunicorn==20.0.0
+PySocks==1.7.1
 redis==3.3.11
 requests==2.22.0
 sqlparse==0.2.4

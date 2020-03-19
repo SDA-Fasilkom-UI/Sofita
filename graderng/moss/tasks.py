@@ -4,12 +4,13 @@ from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
 
+from app.constants import K_REDIS_LOW_PRIORITY
 from grader.models import Submission
 from moss.models import MossJob
 from moss.utils import Downloader, Uploader
 
 
-@shared_task(soft_time_limit=30*60, priority=6)
+@shared_task(soft_time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
 def check_plagiarism(moss_job_id):
     moss_job = MossJob.objects.filter(id=moss_job_id).first()
 
