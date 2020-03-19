@@ -167,6 +167,11 @@ REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
 CELERY_BROKER_URL = "redis://:{}@{}:{}/0".format(
     REDIS_PASSWORD or "", REDIS_HOST, REDIS_PORT)
 
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'priority_steps': list(range(10)),
+    'queue_order_strategy': 'priority',
+}
+
 
 # SCELE
 
