@@ -19,7 +19,7 @@ app.autodiscover_tasks()
 
 # Priority options
 app.conf.broker_transport_options = {
-    'priority_steps': list(range(7)),
+    'priority_steps': list(range(10)),
     'queue_order_strategy': 'priority',
 }
 
