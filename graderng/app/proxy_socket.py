@@ -13,6 +13,6 @@ class ProxySocket():
         if settings.HTTP_PROXY:
             o = urlparse(settings.HTTP_PROXY)
             location, port = o.netloc.split(":")
-            s.set_proxy(socks.HTTP, location, port)
+            s.set_proxy(socks.HTTP, location, int(port))
 
         return s
