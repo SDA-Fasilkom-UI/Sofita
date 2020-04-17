@@ -22,7 +22,7 @@ from filebrowser.sites import site as filebrowser_site
 
 from grader.actions import validate_and_extract
 
-
+# Need to move this somewhere else that only called once
 filebrowser_site.add_action(validate_and_extract)
 
 urlpatterns = [
@@ -30,4 +30,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include("app.urls")),
     path("", include("grader.urls")),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
