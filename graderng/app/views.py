@@ -1,8 +1,8 @@
 import mimetypes
 import os
 
-from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.contrib.auth.decorators import user_passes_test
 from django.http import (
     Http404,
     HttpResponse,
@@ -23,7 +23,7 @@ def hello(request):
     return HttpResponse(response)
 
 
-@login_required(login_url="/admin/")
+@user_passes_test(lambda u: u.is_superuser, login_url="admin:login")
 def media(request, filename):
     """
     View to access media with login required.
