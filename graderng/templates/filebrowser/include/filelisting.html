@@ -101,7 +101,7 @@
             <td><a href="{% url 'filebrowser:fb_browse' %}{% query_string "" "q,dir,p" %}&amp;dir={{ fileobject.path_relative_directory|urlencode }}"><strong>{{ fileobject.filename }}</strong></a></td>
         {% else %}
             <td>
-                <strong>{{ fileobject.filename }}</strong>
+                <a href="{{ fileobject.url }}">{{ fileobject.filename }}</a>
                 {% if fileobject.dimensions %}
                     <br />{{ fileobject.dimensions.0 }} x {{ fileobject.dimensions.1 }} px
                 {% endif %}
