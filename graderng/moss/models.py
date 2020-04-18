@@ -27,6 +27,8 @@ class MossJob(models.Model):
         default=PENDING
     )
 
+    name = models.CharField(max_length=128, blank=True)
+
     class Meta:
         ordering = ["-time_created"]
 

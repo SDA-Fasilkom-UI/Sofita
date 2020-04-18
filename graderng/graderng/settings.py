@@ -92,7 +92,8 @@ DATABASES = {
         'USER': os.environ.get('MONGO_USERNAME'),
         'PASSWORD': os.environ.get('MONGO_PASSWORD'),
         'HOST': os.environ.get('MONGO_HOST'),
-        'PORT': int(os.environ.get('MONGO_PORT', 27017))
+        'PORT': int(os.environ.get('MONGO_PORT', 27017)),
+        'ENFORCE_SCHEMA': False
     }
 }
 

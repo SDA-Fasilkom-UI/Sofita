@@ -22,6 +22,7 @@ class MossJobAdminActions():
 
 class MossJobAdmin(admin.ModelAdmin):
 
+    list_display = ("__str__", "name", "zip_file")
     readonly_fields = ("zip_file", "log", "status", "time_created")
     list_filter = [AssignmentIDFilter]
     actions = [MossJobAdminActions.rerun_check]
