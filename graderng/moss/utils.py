@@ -58,7 +58,7 @@ class Uploader():
         message = "file {0} {1} {2} {3}\n".format(
             file_id,
             self.options['l'],
-            len(content),
+            len(content.encode()),
             display_name
         )
         s.send(message.encode())
