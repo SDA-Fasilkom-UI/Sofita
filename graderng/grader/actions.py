@@ -1,23 +1,45 @@
+import io
 import os
 import shutil
 import zipfile
 
 from django.contrib import messages
-from django.core.files.base import ContentFile
-
+from django.http import HttpResponse
 from filebrowser.sites import site
 from filebrowser.utils import convert_filename
 
-
-def show_error(request, error):
-    messages.add_message(request, messages.ERROR, error)
+from grader.utils import get_problems_path
 
 
-def show_success(request, success):
-    messages.add_message(request, messages.SUCCESS, success)
+def register_actions():
+    site.add_action(validate_and_extract_zip)
+    site.add_action(zip_and_download_folder)
 
 
-def validate_and_extract(request, fileobjects):
+def zip_and_download_folder(request, fileobjects):
+    fileobject = fileobjects[0]
+    problems_path = get_problems_path()
+
+    zipname = fileobject.filename + ".zip"
+
+    buf = io.BytesIO()
+    zipf = zipfile.ZipFile(buf, 'a', zipfile.ZIP_DEFLATED, False)
+
+    for root, _, files in os.walk(fileobject.path_full):
+        for file_ in files:
+            filename = os.path.join(root, file_)
+            arcname = os.path.join(os.path.relpath(root, problems_path), file_)
+            zipf.write(filename, arcname)
+
+    zipf.close()
+
+    # Can't use FileResponse, it is not subclass of HttpResponse
+    response = HttpResponse(buf.getvalue(), content_type="application/zip")
+    response['Content-Disposition'] = 'attachment; filename="%s"' % zipname
+    return response
+
+
+def validate_and_extract_zip(request, fileobjects):
     fileobject = fileobjects[0]
 
     if not zipfile.is_zipfile(fileobject.path_full):
@@ -101,5 +123,17 @@ def validate_and_extract(request, fileobjects):
         show_success(request, "Extracted")
 
 
-validate_and_extract.applies_to = (
+validate_and_extract_zip.applies_to = (
     lambda fileobject: fileobject.extension == ".zip")
+
+zip_and_download_folder.applies_to = (
+    lambda fileobject: fileobject.filetype == "Folder"
+)
+
+
+def show_error(request, msg):
+    messages.add_message(request, messages.ERROR, msg)
+
+
+def show_success(request, msg):
+    messages.add_message(request, messages.SUCCESS, msg)

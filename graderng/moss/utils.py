@@ -174,4 +174,5 @@ class Downloader():
                 curr_futures = next_futures
                 next_futures = []
 
+        zf.close()
         return buf

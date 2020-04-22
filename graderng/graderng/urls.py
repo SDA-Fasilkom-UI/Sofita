@@ -20,10 +20,9 @@ from django.urls import include, path
 
 from filebrowser.sites import site as filebrowser_site
 
-from grader.actions import validate_and_extract
+from grader.actions import register_actions
 
-# Need to move this somewhere else that only called once
-filebrowser_site.add_action(validate_and_extract)
+register_actions()
 
 urlpatterns = [
     path('admin/filebrowser/', filebrowser_site.urls),
