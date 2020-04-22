@@ -15,6 +15,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
     );
     public $timelimitoptions = array(1, 2, 3, 4, 5);
     public $memorylimitoptions = array(64, 128, 192, 256);
+    public $summary = "";
 
     /**
      * Get the name of the gradersda submission plugin
@@ -89,21 +90,31 @@ class assign_submission_gradersda extends assign_submission_plugin {
      * @return string
      */
     public function view_summary(stdClass $submission, & $showviewlink) {
+
+        // Avoid calling multiple summary
+        if (strlen($this->summary) === 0) {
+            $timelimit = $this->timelimitoptions[$this->get_config('timelimit')];
+            $memorylimit = $this->memorylimitoptions[$this->get_config('memorylimit')];
+
+            $activity_id = $this->get_activity_id($submission);
+
+            $this->summary = 'Time Limit: ' . $timelimit .
+                    's | Memory Limit: ' . $memorylimit .
+                    'MB<br>Assignment ID: ' . $this->assignment->get_instance()->id .
+                    ' | Course ID: ' . $this->assignment->get_instance()->course .
+                    ' | Activity ID: ' . $activity_id .
+                    ' | User ID: ' . $submission->userid . "<br>";
+        }
+
         $filesubmission = $this->get_file_submission($submission->id);
+
         if ($filesubmission) {
             $status = $filesubmission->status;
         } else{
             $status = '-';
         }
 
-        $timelimit = $this->timelimitoptions[$this->get_config('timelimit')];
-        $memorylimit = $this->memorylimitoptions[$this->get_config('memorylimit')];
-
-        return 'Time Limit: ' . $timelimit .
-                's | Memory Limit: ' . $memorylimit .
-                'MB<br />Assignment ID: '. $this->assignment->get_instance()->id .
-                ' | User ID: ' . $submission->userid .
-                '<br />Status: ' . $status;
+        return $this->summary . "Status: " . $status;
     }
 
     /**
@@ -158,6 +169,25 @@ class assign_submission_gradersda extends assign_submission_plugin {
             $filesubmission->id = $DB->insert_record('assignsubmission_gradersda', $filesubmission);
             return $filesubmission->id > 0;
         }
+    }
+
+    /**
+     * Get activity ID
+     *
+     * @param stdClass $submission
+     * @return int
+     */
+    public function get_activity_id($submission) {
+        $user = $this->get_user($submission->userid);
+        $gradinginfo = grade_get_grades(
+            $this->assignment->get_instance()->course,
+            'mod',
+            'assign',
+            $this->assignment->get_instance()->id,
+            $user->id
+        );
+
+        return $gradinginfo->items[0]->id;
     }
 
     /**
@@ -288,10 +318,13 @@ class assign_submission_gradersda extends assign_submission_plugin {
     public function submit_for_grading($submission) {
         $user = $this->get_user($submission->userid);
         $ret = $this->assignment->get_submission_plugin_by_type('file');
+
         $data = [
             'userid' => (int) $user->id,
             'attemptnumber' => (int) $submission->attemptnumber + 1,
-            'assignmentid' => (int) $this->assignment->get_instance()->id
+            'assignmentid' => (int) $this->assignment->get_instance()->id,
+            'courseid' => (int) $this->assignment->get_instance()->course,
+            'activityid' => (int) $this->get_activity_id($submission)
         ];
 
         if ($ret->is_enabled()) {
