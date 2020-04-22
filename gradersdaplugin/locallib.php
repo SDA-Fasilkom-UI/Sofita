@@ -174,8 +174,6 @@ class assign_submission_gradersda extends assign_submission_plugin {
     /**
      * Get activity ID
      *
-     * @param stdClass $submission
-     * @return int
      */
     public function get_activity_id() {
         global $PAGE;
