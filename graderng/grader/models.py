@@ -17,6 +17,8 @@ class Submission(models.Model):
     problem_name = models.CharField(max_length=256)
     filename = models.CharField(max_length=256)
     assignment_id = models.IntegerField()
+    course_id = models.IntegerField()
+    activity_id = models.IntegerField()
     user_id = models.IntegerField()
     content = models.TextField()
     id_number = models.CharField(max_length=16)

@@ -91,8 +91,8 @@ class IDNumberFilter(InputFilter):
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = ("id", "id_number", "problem_name", "attempt_number",
                     "formatted_time_modified", "assignment_id", "user_id", "grade", "status")
-    readonly_fields = ("grade", "status", "assignment_id", "user_id", "id_number",
-                       "attempt_number", "due_date", "cut_off_date", "time_modified")
+    readonly_fields = ("grade", "status", "assignment_id", "course_id", "activity_id", "user_id",
+                       "id_number", "attempt_number", "due_date", "cut_off_date", "time_modified")
     list_filter = [AssignmentIDFilter, UserIDFilter, IDNumberFilter]
     actions = [SubmissionAdminActions.regrade_submissions]
 
