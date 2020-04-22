@@ -107,6 +107,8 @@ class Downloader():
 
     def process_url(self, url, base_url):
         r = ProxyRequests.get(url)
+        r.raise_for_status()
+
         soup = BeautifulSoup(r.text, 'lxml')
         filename = os.path.basename(url)
 
