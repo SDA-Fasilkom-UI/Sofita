@@ -96,7 +96,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
             $timelimit = $this->timelimitoptions[$this->get_config('timelimit')];
             $memorylimit = $this->memorylimitoptions[$this->get_config('memorylimit')];
 
-            $activity_id = $this->get_activity_id($submission);
+            $activity_id = $this->get_activity_id();
 
             $this->summary = 'Time Limit: ' . $timelimit .
                     's | Memory Limit: ' . $memorylimit .
@@ -177,17 +177,9 @@ class assign_submission_gradersda extends assign_submission_plugin {
      * @param stdClass $submission
      * @return int
      */
-    public function get_activity_id($submission) {
-        $user = $this->get_user($submission->userid);
-        $gradinginfo = grade_get_grades(
-            $this->assignment->get_instance()->course,
-            'mod',
-            'assign',
-            $this->assignment->get_instance()->id,
-            $user->id
-        );
-
-        return $gradinginfo->items[0]->id;
+    public function get_activity_id() {
+        $cmid = required_param('id', PARAM_INT);
+        return $cmid;
     }
 
     /**
@@ -324,7 +316,7 @@ class assign_submission_gradersda extends assign_submission_plugin {
             'attemptnumber' => (int) $submission->attemptnumber + 1,
             'assignmentid' => (int) $this->assignment->get_instance()->id,
             'courseid' => (int) $this->assignment->get_instance()->course,
-            'activityid' => (int) $this->get_activity_id($submission)
+            'activityid' => (int) $this->get_activity_id()
         ];
 
         if ($ret->is_enabled()) {
