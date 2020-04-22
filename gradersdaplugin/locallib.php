@@ -178,8 +178,8 @@ class assign_submission_gradersda extends assign_submission_plugin {
      * @return int
      */
     public function get_activity_id() {
-        $cmid = required_param('id', PARAM_INT);
-        return $cmid;
+        global $PAGE;
+        return $PAGE->cm->id;
     }
 
     /**
