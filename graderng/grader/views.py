@@ -57,9 +57,11 @@ def grade(request):
         time_modified=data['timemodified']
     )
 
-    tasks.grade.apply_async((sub.id, sub.assignment_id,
-                             sub.user_id, sub.attempt_number),
-                            priority=K_REDIS_HIGH_PRIORITY)
+    tasks.grade.apply_async(
+        (sub.id, sub.assignment_id, sub.course_id,
+         sub.activity_id, sub.user_id, sub.attempt_number),
+        priority=K_REDIS_HIGH_PRIORITY
+    )
 
     return Response({"message": "ok"})
 
@@ -68,10 +70,11 @@ def grade(request):
 @permission_classes([TokenPermission])
 def skip(request):
     data = request.data
-    assignment_id = data['assignmentid']
-    user_id = data['userid']
-    attempt_number = data['attemptnumber']
-
-    tasks.skip.delay(assignment_id, user_id, attempt_number)
-
+    tasks.skip.delay(
+        data['assignmentid'],
+        data['courseid'],
+        data['activityid'],
+        data['userid'],
+        data['attemptnumber']
+    )
     return Response({"message": "ok"})

@@ -347,7 +347,6 @@ class assign_submission_gradersda extends assign_submission_plugin {
                 $sent = $this->send_to_grader($submission, 'grade', $data);
                 if (!$sent) {
                     $this->update_submission_status($submission, $this->statusoptions['FAILED']);
-                    return $this->statusoptions['FAILED'];
                 }
 
             } else {

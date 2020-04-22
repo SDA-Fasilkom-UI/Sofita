@@ -16,13 +16,13 @@ from grader.runner import JavaRunner
 
 
 @shared_task
-def grade(submission_id, assignment_id, user_id, attempt_number):
+def grade(submission_id, assignment_id, course_id, activity_id, user_id, attempt_number):
     sub = Submission.objects.filter(id=submission_id).first()
 
     if sub is None:
         send_feedback.delay(
-            assignment_id, user_id, attempt_number,
-            SUBMISSION_NOT_FOUND
+            assignment_id, course_id, activity_id, user_id, attempt_number,
+            SUBMISSION_NOT_FOUND, 0
         )
 
         return "FAIL"
@@ -36,28 +36,28 @@ def grade(submission_id, assignment_id, user_id, attempt_number):
     sub.grade = grade
     sub.save()
 
-    send_feedback.delay(assignment_id, user_id, attempt_number, feedback)
+    send_feedback.delay(
+        assignment_id, course_id, activity_id, user_id, attempt_number,
+        feedback, grade
+    )
 
     return "OK"
 
 
 @shared_task(priority=K_REDIS_HIGH_PRIORITY)
-def skip(assignment_id, user_id, attempt_number):
+def skip(assignment_id, course_id, activity_id, user_id, attempt_number):
     send_feedback.delay(
-        assignment_id,
-        user_id,
-        attempt_number,
-        SUBMISSION_SKIPPED
+        assignment_id, course_id, activity_id, user_id, attempt_number,
+        SUBMISSION_SKIPPED, 0
     )
     return "OK"
 
 
 @shared_task(bind=True, max_retries=10, priority=K_REDIS_HIGH_PRIORITY)
-def send_feedback(self, assignment_id, user_id, attempt_number, feedback, add_attempt=True):
+def send_feedback(self, assignment_id, course_id, activity_id, user_id, attempt_number, feedback, grade):
     url = settings.SCELE_URL
-    params = {
+    base_params = {
         "wstoken": settings.SCELE_TOKEN,
-        "wsfunction": "mod_assign_save_grade",
         "moodlewsrestformat": "json"
     }
 
@@ -70,22 +70,41 @@ def send_feedback(self, assignment_id, user_id, attempt_number, feedback, add_at
     else:
         max_grade = 0
 
-    data = {
+    feedback_data = {
         "assignmentid": assignment_id,
         "userid": user_id,
-        "grade": max_grade,
+        "grade": grade,
         "attemptnumber": attempt_number - 1,
-        "addattempt": int(add_attempt),
+        "addattempt": 1,
         "workflowstate": "",
         "applytoall": 0,
         "plugindata[assignfeedbackcomments_editor][text]": feedback,
         "plugindata[assignfeedbackcomments_editor][format]": 1  # HTML
     }
 
+    max_grade_data = {
+        "source": "assignment",
+        "component": "mod_assign",
+        "itemnumber": 0,
+        "courseid": course_id,
+        "activityid": activity_id,
+        "grades[0][studentid]": user_id,
+        "grades[0][grade]": max_grade
+    }
+
     try:
-        r = ProxyRequests.post(url, params=params, data=data)
+        p = ProxyRequests.post(
+            url,
+            params={**base_params, "wsfunction": "mod_assign_save_grade"},
+            data=feedback_data
+        )
+        q = ProxyRequests.post(
+            url,
+            params={**base_params, "wsfunction": "core_grades_update_grades"},
+            data=max_grade_data
+        )
     except Exception as exc:
         rand = random.uniform(2, 4)
         self.retry(exc=exc, countdown=rand ** self.request.retries)
 
-    return (r.status_code, r.text)
+    return (p.status_code, p.text, q.status_code, q.text)
