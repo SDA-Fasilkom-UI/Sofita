@@ -8,8 +8,6 @@ from django.http import HttpResponse
 from filebrowser.sites import site
 from filebrowser.utils import convert_filename
 
-from grader.utils import get_problems_path
-
 
 def register_actions():
     site.add_action(validate_and_extract_zip)
@@ -18,8 +16,6 @@ def register_actions():
 
 def zip_and_download_folder(request, fileobjects):
     fileobject = fileobjects[0]
-    problems_path = get_problems_path()
-
     zipname = fileobject.filename + ".zip"
 
     buf = io.BytesIO()
@@ -27,9 +23,11 @@ def zip_and_download_folder(request, fileobjects):
 
     for root, _, files in os.walk(fileobject.path_full):
         for file_ in files:
-            filename = os.path.join(root, file_)
-            arcname = os.path.join(os.path.relpath(root, problems_path), file_)
-            zipf.write(filename, arcname)
+            fileabspath = os.path.join(root, file_)
+            filerelpath = os.path.relpath(fileabspath, site.storage.location)
+            arcname = os.path.relpath(filerelpath, fileobject.head)
+
+            zipf.write(fileabspath, arcname)
 
     zipf.close()
 
