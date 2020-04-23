@@ -10,7 +10,7 @@ deploy:
     - apk add --no-cache openssh
     - echo -e $SSH_KEY > KEY
     - chmod 600 KEY
-    - ssh -oStrictHostKeyChecking=no $SSH_USERNAME@152.118.29.157 -i KEY "
+    - ssh -oStrictHostKeyChecking=no $SSH_USERNAME@$SOFITA_IP -i KEY "
         cd $SOFITA_PATH
         && git stash
         && git checkout master
