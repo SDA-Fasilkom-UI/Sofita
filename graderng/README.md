@@ -98,34 +98,6 @@ Then, we have to enable the memory and swap accounting in control groups. Follow
 
 Source: https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.html
 
-## Apache
-
-1. Enable proxy.
-   ```
-   sudo a2enmod proxy
-   ```
-1. Modify apache2 config `/etc/apache2/sites-available/000-default.conf`.
-
-   ```
-   <VirtualHost *:80>
-      ProxyPreserveHost On
-
-      Alias /media [media-path]
-      <Directory [media-path]>
-           Require all granted
-      </Directory>
-
-      ProxyPassMatch ^/media !
-      ProxyPass / http://127.0.0.1:18080/
-      ProxyPassReverse / http://127.0.0.1:18080/
-   </VirtualHost>
-   ```
-
-1. Restart service.
-   ```
-   sudo service apache2 restart
-   ```
-
 ## Important Notes
 
 1. Use `sqlparse==0.2.4`
