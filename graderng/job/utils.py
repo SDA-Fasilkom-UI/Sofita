@@ -9,7 +9,7 @@ from app.proxy_socket import ProxySocket
 from app.proxy_requests import ProxyRequests
 
 
-class Uploader():
+class MossUploader():
     """
     Copied and edited from:
     https://github.com/soachishti/moss.py/blob/master/mosspy/moss.py
@@ -99,7 +99,7 @@ class Uploader():
         return response.decode().replace("\n", "")
 
 
-class Downloader():
+class MossDownloader():
     """
     Copied and edited from:
     https://github.com/soachishti/moss.py/blob/master/mosspy/download_report.py

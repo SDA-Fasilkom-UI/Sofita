@@ -6,8 +6,8 @@ from django.utils import timezone
 
 from app.constants import K_REDIS_LOW_PRIORITY
 from grader.models import Submission
-from moss.models import MossJob
-from moss.utils import Downloader, Uploader
+from job.models import MossJob, ReportJob
+from job.utils import MossDownloader, MossUploader
 
 
 @shared_task(soft_time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
@@ -24,8 +24,8 @@ def check_plagiarism(moss_job_id):
     moss_job.status = MossJob.RUNNING
     moss_job.save()
 
-    uploader = Uploader(settings.MOSS_USER_ID, "java")
-    downloader = Downloader()
+    uploader = MossUploader(settings.MOSS_USER_ID, "java")
+    downloader = MossDownloader()
 
     submissions = Submission.objects.filter(
         assignment_id=moss_job.assignment_id)
@@ -81,3 +81,34 @@ def check_plagiarism(moss_job_id):
         moss_job.save()
 
         return ("FAIL", tb)
+
+
+@shared_task(soft_time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
+def generate_report(report_job_id):
+    report_job = ReportJob.objects.filter(_id=report_job_id).first()
+
+    if report_job is None:
+        return "FAIL"
+
+    # remove existing file
+    report_job.csv_file.delete(save=False)
+    report_job.time_created = timezone.now()
+    report_job.log = "Running"
+    report_job.status = ReportJob.RUNNING
+    report_job.save()
+
+    submissions = Submission.objects.filter(
+        assignment_id=report_job.assignment_id)
+
+    if not submissions:
+        report_job.log = "Assignment ID is invalid"
+        report_job.status = ReportJob.FAILED
+        report_job.save()
+
+        return "FAIL"
+
+    # TO-DO with submissions
+    report_job.log = "Not Implemented"
+    report_job.status = ReportJob.FAILED
+    report_job.save()
+    return "FAIL"
