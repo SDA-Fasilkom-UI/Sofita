@@ -3,8 +3,10 @@ import datetime
 from djongo import models
 from django.utils import timezone
 
+from app.models import BaseModel
 
-class Submission(models.Model):
+
+class Submission(BaseModel):
     PENDING = "P"
     GRADING = "G"
     DONE = "D"
@@ -13,8 +15,6 @@ class Submission(models.Model):
         (GRADING, 'Grading'),
         (DONE, 'Done'),
     ]
-
-    _id = models.ObjectIdField()
 
     problem_name = models.CharField(max_length=256)
     filename = models.CharField(max_length=256)
@@ -51,10 +51,3 @@ class Submission(models.Model):
     def formatted_time_modified(self):
         dt = datetime.datetime.fromtimestamp(self.time_modified)
         return timezone.make_aware(dt)
-
-    @property
-    def id_(self):
-        """
-        Same as _id, but string.
-        """
-        return str(self._id)

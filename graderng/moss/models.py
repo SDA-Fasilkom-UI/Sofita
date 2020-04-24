@@ -3,8 +3,10 @@ import os
 from djongo import models
 from django.utils import timezone
 
+from app.models import BaseModel
 
-class MossJob(models.Model):
+
+class MossJob(BaseModel):
     PENDING = "P"
     RUNNING = "R"
     FAILED = "F"
@@ -15,8 +17,6 @@ class MossJob(models.Model):
         (FAILED, 'Failed'),
         (DONE, 'Done'),
     ]
-
-    _id = models.ObjectIdField()
 
     assignment_id = models.IntegerField()
     time_created = models.DateTimeField()
@@ -40,10 +40,3 @@ class MossJob(models.Model):
 
         localtime = timezone.localtime(self.time_created)
         return str(self.assignment_id) + " - " + localtime.strftime("%d-%m-%Y %H:%M:%S")
-
-    @property
-    def id_(self):
-        """
-        Same as _id, but string.
-        """
-        return str(self._id)
