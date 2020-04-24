@@ -16,6 +16,8 @@ class MossJob(models.Model):
         (DONE, 'Done'),
     ]
 
+    _id = models.ObjectIdField()
+
     assignment_id = models.IntegerField()
     time_created = models.DateTimeField()
     template = models.TextField(blank=True)

@@ -15,7 +15,7 @@ class SubmissionAdminActions():
         queryset.update(status=Submission.PENDING)
         for sub in queryset.all():
             tasks.grade.apply_async(
-                (sub.id, sub.assignment_id, sub.course_id,
+                (sub._id, sub.assignment_id, sub.course_id,
                  sub.activity_id, sub.user_id, sub.attempt_number),
                 priority=K_REDIS_MIDDLE_PRIORITY)
 
@@ -90,7 +90,7 @@ class IDNumberFilter(InputFilter):
 
 
 class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ("id", "id_number", "problem_name", "attempt_number",
+    list_display = ("_id", "id_number", "problem_name", "attempt_number",
                     "formatted_time_modified", "assignment_id", "user_id", "grade", "status")
     readonly_fields = ("grade", "status", "assignment_id", "course_id", "activity_id", "user_id",
                        "id_number", "attempt_number", "due_date", "cut_off_date", "time_modified")

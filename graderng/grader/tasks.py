@@ -17,7 +17,7 @@ from grader.runner import JavaRunner
 
 @shared_task
 def grade(submission_id, assignment_id, course_id, activity_id, user_id, attempt_number):
-    sub = Submission.objects.filter(id=submission_id).first()
+    sub = Submission.objects.filter(_id=submission_id).first()
 
     if sub is None:
         send_feedback.delay(

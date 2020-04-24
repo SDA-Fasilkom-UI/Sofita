@@ -10,6 +10,10 @@ from filebrowser.utils import convert_filename
 
 
 def register_actions():
+    """
+    Register actions, make sure to called it once.
+    """
+
     site.add_action(validate_and_extract_zip)
     site.add_action(zip_and_download_folder)
 

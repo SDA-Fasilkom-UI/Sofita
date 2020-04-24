@@ -14,6 +14,8 @@ class Submission(models.Model):
         (DONE, 'Done'),
     ]
 
+    _id = models.ObjectIdField()
+
     problem_name = models.CharField(max_length=256)
     filename = models.CharField(max_length=256)
     assignment_id = models.IntegerField()

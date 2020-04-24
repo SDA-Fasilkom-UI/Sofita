@@ -12,7 +12,7 @@ from moss.utils import Downloader, Uploader
 
 @shared_task(soft_time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
 def check_plagiarism(moss_job_id):
-    moss_job = MossJob.objects.filter(id=moss_job_id).first()
+    moss_job = MossJob.objects.filter(_id=moss_job_id).first()
 
     if moss_job is None:
         return "FAIL"
