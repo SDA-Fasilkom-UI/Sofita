@@ -58,7 +58,7 @@ def grade(request):
     )
 
     tasks.grade.apply_async(
-        (sub._id, sub.assignment_id, sub.course_id,
+        (sub.id_, sub.assignment_id, sub.course_id,
          sub.activity_id, sub.user_id, sub.attempt_number),
         priority=K_REDIS_HIGH_PRIORITY
     )

@@ -14,7 +14,7 @@ class MossJobAdminActions():
     def rerun_check(modeladmin, request, queryset):
         queryset.update(status=MossJob.PENDING)
         for moss_job in queryset.all():
-            tasks.check_plagiarism.delay(moss_job._id)
+            tasks.check_plagiarism.delay(moss_job.id_)
 
         modeladmin.message_user(
             request, "Selected moss job will be rerun")
@@ -36,7 +36,7 @@ class MossJobAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         if not change:
-            tasks.check_plagiarism.delay(obj._id)
+            tasks.check_plagiarism.delay(obj.id_)
 
 
 admin.site.register(MossJob, MossJobAdmin)

@@ -40,3 +40,10 @@ class MossJob(models.Model):
 
         localtime = timezone.localtime(self.time_created)
         return str(self.assignment_id) + " - " + localtime.strftime("%d-%m-%Y %H:%M:%S")
+
+    @property
+    def id_(self):
+        """
+        Same as _id, but string.
+        """
+        return str(self._id)

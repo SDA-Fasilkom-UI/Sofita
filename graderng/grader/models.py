@@ -51,3 +51,10 @@ class Submission(models.Model):
     def formatted_time_modified(self):
         dt = datetime.datetime.fromtimestamp(self.time_modified)
         return timezone.make_aware(dt)
+
+    @property
+    def id_(self):
+        """
+        Same as _id, but string.
+        """
+        return str(self._id)

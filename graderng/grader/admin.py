@@ -15,7 +15,7 @@ class SubmissionAdminActions():
         queryset.update(status=Submission.PENDING)
         for sub in queryset.all():
             tasks.grade.apply_async(
-                (sub._id, sub.assignment_id, sub.course_id,
+                (sub.id_, sub.assignment_id, sub.course_id,
                  sub.activity_id, sub.user_id, sub.attempt_number),
                 priority=K_REDIS_MIDDLE_PRIORITY)
 
