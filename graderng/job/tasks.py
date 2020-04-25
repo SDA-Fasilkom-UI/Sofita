@@ -1,3 +1,6 @@
+import csv
+import io
+import datetime
 import traceback
 
 from celery import shared_task
@@ -107,8 +110,50 @@ def generate_report(report_job_id):
 
         return "FAIL"
 
-    # TO-DO with submissions
-    report_job.log = "Not Implemented"
-    report_job.status = ReportJob.FAILED
+    result = {}
+    id_mapping = {}
+    max_attempt_number = 0
+    for sub in submissions:
+        if sub.user_id not in result:
+            result[sub.user_id] = {}
+
+        dt = datetime.datetime.fromtimestamp(sub.time_modified)
+        dt = timezone.make_aware(dt)
+        result[sub.user_id]["{}_grade".format(sub.attempt_number)] = sub.grade
+        result[sub.user_id]["{}_time".format(sub.attempt_number)] = \
+            dt.strftime("%d-%m-%Y %H:%M:%S")
+
+        if sub.id_number:
+            id_mapping[sub.user_id] = sub.id_number
+
+        if sub.attempt_number > max_attempt_number:
+            max_attempt_number = sub.attempt_number
+
+    fieldnames = ["student_id"]
+    for num in range(max_attempt_number):
+        fieldnames.extend(["{}_grade".format(num + 1),
+                           "{}_time".format(num + 1)])
+
+    buf = io.StringIO()
+    cf = csv.DictWriter(buf, fieldnames=fieldnames)
+    cf.writeheader()
+
+    for user_id, data in result.items():
+        student_id = id_mapping.get(user_id, "UserID({})".format(user_id))
+        row = {}
+        for fieldname in fieldnames:
+            if fieldname == "student_id":
+                row["student_id"] = student_id
+            else:
+                row[fieldname] = data.get(fieldname, "-")
+        cf.writerow(row)
+
+    filename = "{}_{}.csv".format(
+        report_job.assignment_id, int(report_job.time_created.timestamp()))
+
+    report_job.csv_file.save(filename, buf, save=False)
+    report_job.log = "Success"
+    report_job.status = MossJob.DONE
     report_job.save()
-    return "FAIL"
+
+    return "OK"
