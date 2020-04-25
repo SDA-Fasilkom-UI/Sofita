@@ -1,6 +1,6 @@
 from django.contrib import admin, messages
 
-from app.constants import K_REDIS_MIDDLE_PRIORITY
+from app.constants import K_REDIS_LOW_PRIORITY
 from grader import tasks
 from grader.models import Submission
 
@@ -17,7 +17,7 @@ class SubmissionAdminActions():
             tasks.grade.apply_async(
                 (sub.id_, sub.assignment_id, sub.course_id,
                  sub.activity_id, sub.user_id, sub.attempt_number),
-                priority=K_REDIS_MIDDLE_PRIORITY)
+                priority=K_REDIS_LOW_PRIORITY)
 
         modeladmin.message_user(
             request, "Selected submission will be regraded")
