@@ -45,7 +45,7 @@ class ReportJobAdminActions():
     """
 
     @staticmethod
-    def rerun_check(modeladmin, request, queryset):
+    def regenerate_report(modeladmin, request, queryset):
         queryset.update(status=ReportJob.PENDING)
         for report_job in queryset.all():
             tasks.generate_report.delay(report_job.id_)
@@ -59,7 +59,7 @@ class ReportJobAdmin(admin.ModelAdmin):
     list_display = ("__str__", "name", "csv_file")
     readonly_fields = ("csv_file", "log", "status", "time_created")
     list_filter = [AssignmentIDFilter]
-    actions = [ReportJobAdminActions.rerun_check]
+    actions = [ReportJobAdminActions.regenerate_report]
 
     def get_actions(self, request):
         actions = super().get_actions(request)
