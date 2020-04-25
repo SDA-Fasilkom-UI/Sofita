@@ -5,6 +5,7 @@ services:
       context: .
       args:
         HTTP_PROXY: ${HTTP_PROXY}
+    restart: always
     depends_on:
       - redis
       - mongo
@@ -20,6 +21,7 @@ services:
       context: .
       args:
         HTTP_PROXY: ${HTTP_PROXY}
+    restart: always
     depends_on:
       - redis
       - mongo
@@ -33,6 +35,7 @@ services:
   redis:
     image: redis:5.0.6
     command: redis-server --requirepass ${REDIS_PASSWORD}
+    restart: always
 
   mongo:
     image: mongo:4.2.1
@@ -42,3 +45,4 @@ services:
       MONGO_INITDB_DATABASE: ${MONGO_DBNAME}
     volumes:
       - ${MONGO_DATA_LOCATION}:/data/db
+    restart: always
