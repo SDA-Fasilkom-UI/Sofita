@@ -4,6 +4,7 @@ import datetime
 import traceback
 
 from celery import shared_task
+from django.db.models import Max
 from django.conf import settings
 from django.utils import timezone
 
@@ -50,7 +51,7 @@ def check_plagiarism(moss_job_id):
     user_ids = set(submissions.values_list("user_id", flat=True))
     for user_id in user_ids:
         user_highest_sub = submissions.filter(
-            user_id=user_id).order_by('-grade').first()
+            user_id=user_id).order_by('-grade', '-time_modified').first()
         highest_submissions.append(user_highest_sub)
 
     for sub in highest_submissions:
@@ -133,6 +134,7 @@ def generate_report(report_job_id):
     for num in range(max_attempt_number):
         fieldnames.extend(["{}_grade".format(num + 1),
                            "{}_time".format(num + 1)])
+    fieldnames.append("max_grade")
 
     buf = io.StringIO()
     cf = csv.DictWriter(buf, fieldnames=fieldnames)
@@ -140,12 +142,17 @@ def generate_report(report_job_id):
 
     for user_id, data in result.items():
         student_id = id_mapping.get(user_id, "UserID({})".format(user_id))
+        max_grade = submissions \
+            .filter(user_id=user_id) \
+            .aggregate(Max("grade"))["grade__max"]
+
+        data["student_id"] = student_id
+        data["max_grade"] = max_grade
+
         row = {}
         for fieldname in fieldnames:
-            if fieldname == "student_id":
-                row["student_id"] = student_id
-            else:
-                row[fieldname] = data.get(fieldname, "-")
+            row[fieldname] = data.get(fieldname, "-")
+
         cf.writerow(row)
 
     filename = "{}_{}.csv".format(
