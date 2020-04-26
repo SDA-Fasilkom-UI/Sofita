@@ -153,9 +153,9 @@ class Runner():
     def verdict_to_text(self, verdict):
         result = ""
         for i in range(len(verdict)):
-            result += "\n" if i % 5 == 0 else " | "
             status, time = verdict[i]
             result += "{}: {} ({})".format(i + 1, status, time)
+            result += "\n" if (i + 1) % 5 == 0 else " | "
 
         return result
 
