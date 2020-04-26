@@ -155,7 +155,7 @@ class Runner():
         for i in range(len(verdict)):
             result += "\n" if i % 5 == 0 else " | "
             status, time = verdict[i]
-            result += "{}: {} ({})".format(i, status, time)
+            result += "{}: {} ({})".format(i + 1, status, time)
 
         return result
 
