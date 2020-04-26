@@ -30,9 +30,10 @@ def grade(submission_id, assignment_id, course_id, activity_id, user_id, attempt
     sub.status = Submission.GRADING
     sub.save()
 
-    grade, feedback = JavaRunner(sub).grade_submission()
+    grade, feedback, verdict = JavaRunner(sub).grade_submission()
 
     sub.status = Submission.DONE
+    sub.verdict = verdict
     sub.grade = grade
     sub.save()
 

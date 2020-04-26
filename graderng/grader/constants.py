@@ -1,3 +1,4 @@
+DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT = "Directory not found"
 DIRECTORY_NOT_FOUND_OR_INVALID_ERROR = \
     """
     <p><b> Error | Attempt Grade: 0 </b></p>

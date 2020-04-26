@@ -7,6 +7,7 @@ from django.template import Context, Template
 from grader.constants import (
     COMPILATION_ERROR,
     DIRECTORY_NOT_FOUND_OR_INVALID_ERROR,
+    DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT,
     VERDICT_FEEDBACK
 )
 from grader.sandbox import JavaSandbox
@@ -93,12 +94,13 @@ class Runner():
         # validate cases_path
         cases_path = self._validate_and_get_cases_path()
         if cases_path is None:
-            return (0, DIRECTORY_NOT_FOUND_OR_INVALID_ERROR)
+            return (0, DIRECTORY_NOT_FOUND_OR_INVALID_ERROR, DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT)
 
         # compile
         compile_code, error, exec_content, exec_name = self._do_compile()
         if compile_code != 0:
-            return (0, self.render_html(COMPILATION_ERROR, {"error": error}))
+            error_minimum = "\n".join(error.split("\n")[:20])
+            return (0, self.render_html(COMPILATION_ERROR, {"error": error_minimum}), error_minimum)
 
         num_files = len(os.listdir(cases_path))
         num_tc = num_files // 2
@@ -138,13 +140,24 @@ class Runner():
             "verdict": verdict
         })
 
-        return (grade, feedback)
+        verdict_txt = self.verdict_to_text(verdict)
+
+        return (grade, feedback, verdict_txt)
 
     def render_html(self, content, data):
         template = Template(content)
         context = Context(data)
 
         return template.render(context)
+
+    def verdict_to_text(self, verdict):
+        result = ""
+        for i in range(len(verdict)):
+            result += "\n" if i % 5 == 0 else " | "
+            status, time = verdict[i]
+            result += "{}: {} ({})".format(i, status, time)
+
+        return result
 
 
 class JavaRunner(Runner):

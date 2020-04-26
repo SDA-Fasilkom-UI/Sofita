@@ -33,6 +33,7 @@ class Submission(BaseModel):
     time_modified = models.IntegerField()
 
     grade = models.IntegerField(default=0)
+    verdict = models.TextField()
     status = models.CharField(
         max_length=2,
         choices=STATUS_CHOICES,
