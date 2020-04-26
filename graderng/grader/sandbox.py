@@ -77,13 +77,14 @@ class Sandbox():
             raise SandboxException(
                 "Cannot cleanup isolate ({})".format(p.stderr.decode()))
 
-    def add_file_from_string(self, content, filename):
+    def write_to_file(self, content, filename, binary=False):
         filepath = os.path.join(self.box_path, filename)
-        self.files.add(filename)
-        with open(filepath, "w") as f:
+
+        mode = "wb" if binary else "w"
+        with open(filepath, mode) as f:
             f.write(content)
 
-    def add_dir(self, dir_):
+    def mount_dir(self, dir_):
         self.dirs.add(dir_)
 
     def parse_meta(self):
@@ -117,25 +118,36 @@ class JavaSandbox(Sandbox):
         super().__init__()
 
     def compile(self, filename):
-        compile_command = ["/bin/bash", "-c", "javac {}".format(filename)]
+        main_class_name, _ = os.path.splitext(filename)
+        jar_name = main_class_name + ".jar"
+
+        compile_command = [
+            "/bin/bash", "-c",
+            "javac {}; jar cfe {} {} *.class".format(filename, jar_name, main_class_name)]
+
         cmd = self._build_command(compile_command)
 
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        return (p.returncode, p.stderr.decode())
+        return (p.returncode, p.stderr.decode(), jar_name)
 
-    def run(self, filename, time_limit, memory_limit, input_, output_):
-        run_command = ["/bin/bash", "-c", "java {}".format(filename)]
+    def run(self, filename, time_limit, memory_limit, input_path, output_path):
+        run_command = ["/bin/bash", "-c", "java -jar {}".format(filename)]
 
-        sub_output = "_output"
+        sub_output = "sub_output"
         cmd = self._build_command(
-            run_command, time_limit, memory_limit, input_, sub_output)
+            run_command,
+            time_limit=time_limit,
+            memory_limit=memory_limit,
+            stdin=input_path,
+            stdout=sub_output
+        )
 
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         result = self.parse_meta()
 
         if p.returncode == 0:
-            is_same = self.diff_ignore_whitespace(output_, sub_output)
+            is_same = self.diff_ignore_whitespace(output_path, sub_output)
             return ("AC" if is_same else "WA", result["time"])
 
         else:
