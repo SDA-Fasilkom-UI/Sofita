@@ -109,24 +109,38 @@ class Runner():
 
         max_workers = settings.TESTCASE_CONCURRENCY
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-            future_to_tc = {}
+            curr_future_to_tc = {}
+            next_future_to_tc = {}
+            retry_counter = {}
+
             for i in range(num_tc):
-
                 future = executor.submit(
-                    self._do_run,
-                    exec_content,
-                    exec_name,
-                    cases_path,
-                    os.path.join(cases_path, "{}.in".format(i + 1)),
-                    os.path.join(cases_path, "{}.out".format(i + 1))
+                    self._do_run, exec_content, exec_name, cases_path,
+                    os.path.join(cases_path, str(i+1) + ".in"),
+                    os.path.join(cases_path, str(i+1) + ".out"),
                 )
-                future_to_tc[future] = i
+                curr_future_to_tc[future] = i
 
-            for future in concurrent.futures.as_completed(future_to_tc):
-                tc = future_to_tc[future]
-                status, time = future.result()
+            while(len(curr_future_to_tc) > 0):
+                for future in concurrent.futures.as_completed(curr_future_to_tc):
+                    tc = curr_future_to_tc[future]
+                    try:
+                        status, time = future.result()
+                        result[tc] = (status, time)
+                    except:
+                        retry_counter[tc] = retry_counter.get(tc, 0) + 1
+                        if retry_counter[tc] <= 5:
+                            future = executor.submit(
+                                self._do_run, exec_content, exec_name, cases_path,
+                                os.path.join(cases_path, str(tc+1) + ".in"),
+                                os.path.join(cases_path, str(tc+1) + ".out")
+                            )
+                            next_future_to_tc[future] = tc
+                        else:
+                            raise
 
-                result[tc] = (status, time)
+                curr_future_to_tc = next_future_to_tc
+                next_future_to_tc = {}
 
         verdict = []
         for i in range(num_tc):
