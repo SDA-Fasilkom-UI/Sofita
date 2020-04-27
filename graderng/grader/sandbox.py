@@ -5,7 +5,7 @@ import redis
 
 from app import redis_connection_pool
 
-redis = redis.Redis(connection_pool=redis_connection_pool)
+redis_conn = redis.Redis(connection_pool=redis_connection_pool)
 
 
 class Sandbox():
@@ -168,5 +168,5 @@ def get_redis_box_id():
         end
         return x
     """
-    num = redis.eval(cmd, 1, "_BOX_ID", 256)
+    num = redis_conn.eval(cmd, 1, "_BOX_ID", 256)
     return num
