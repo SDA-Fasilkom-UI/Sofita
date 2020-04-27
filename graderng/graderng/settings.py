@@ -88,12 +88,14 @@ WSGI_APPLICATION = 'graderng.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
+        'ENFORCE_SCHEMA': False,
         'NAME': os.environ.get('MONGO_DBNAME', 'test-mongo'),
-        'USER': os.environ.get('MONGO_USERNAME'),
-        'PASSWORD': os.environ.get('MONGO_PASSWORD'),
-        'HOST': os.environ.get('MONGO_HOST'),
-        'PORT': int(os.environ.get('MONGO_PORT', 27017)),
-        'ENFORCE_SCHEMA': False
+        'CLIENT': {
+            'host': os.environ.get('MONGO_HOST', 'localhost'),
+            'port': int(os.environ.get('MONGO_PORT', 27017)),
+            'username': os.environ.get('MONGO_USERNAME'),
+            'password': os.environ.get('MONGO_PASSWORD')
+        }
     }
 }
 
