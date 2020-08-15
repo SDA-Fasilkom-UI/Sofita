@@ -59,6 +59,7 @@ Data Structures and Algorithms Grader
 
    TESTCASE_CONCURRENCY = 8
    CELERY_CONCURRENCY = 2
+   GUNICORN_THREADS = 2
    ```
 
 1. Run all services.
