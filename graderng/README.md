@@ -105,3 +105,4 @@ Source: https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.htm
 ## Important Notes
 
 1. Use `sqlparse==0.2.4`
+2. `--privileged` is used due to https://github.com/ioi/isolate/issues/35
