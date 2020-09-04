@@ -1,13 +1,9 @@
-FROM python:3.8-alpine3.12
+FROM ubuntu:20.04
 
-RUN apk update \
-    && apk add --no-cache \
-    bash git make gcc diffutils tzdata \
-    libcap-dev libffi-dev musl-dev libxml2-dev libxslt-dev jpeg-dev \
-    openjdk8
-
-ENV JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk
-ENV PATH=$PATH:$JAVA_HOME/bin
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip git build-essential \
+    libcap-dev openjdk-8-jdk
 
 RUN if [ ! -z "$HTTP_PROXY" ]; then git config --global http.proxy $HTTP_PROXY; fi
 
