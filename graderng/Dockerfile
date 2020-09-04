@@ -1,5 +1,8 @@
 FROM ubuntu:20.04
 
+RUN if [ ! -z "$HTTP_PROXY" ]; then \
+    echo "Acquire::http::proxy \"$HTTP_PROXY\";" >> /etc/apt/apt.conf; fi
+
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip git build-essential \
