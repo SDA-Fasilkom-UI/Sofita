@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$1" == "worker" ]; then
-    celery -A graderng worker -l info --concurrency=$CELERY_CONCURRENCY --pool threads
+    celery -A graderng worker -l info --concurrency=$WORKER_CONCURRENCY --pool threads
 else if [ "$1" == "feedbacks_jobs" ]; then
     celery -A graderng worker -l info -Q feedbacks_jobs --concurrency=$FEEDBACKS_JOBS_CONCURRENCY --pool gevent
 else
