@@ -18,6 +18,7 @@ COPY requirements.txt /graderng/requirements.txt
 
 RUN export HTTP_PROXY=$HTTP_PROXY
 RUN export HTTPS_PROXY=$HTTP_PROXY
+RUN echo $HTTP_PROXY $HTTPS_PROXY
 RUN if [ ! -z "$HTTP_PROXY" ]; then pip3 --proxy $HTTP_PROXY --retries 1 install -r requirements.txt; \
     else pip3 install -r requirements.txt; fi
 
