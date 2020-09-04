@@ -1,8 +1,13 @@
-FROM openjdk:8-alpine3.9
+FROM python:3.8-alpine3.12
 
 RUN apk update \
-    && apk add --no-cache bash git make gcc libcap-dev musl-dev diffutils tzdata \
-    python3 python3-dev py3-pillow py3-lxml
+    && apk add --no-cache \
+    bash git make gcc diffutils tzdata \
+    libcap-dev libffi-dev musl-dev libxml2-dev libxslt-dev jpeg-dev \
+    openjdk8
+
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk
+ENV PATH=$PATH:$JAVA_HOME/bin
 
 RUN if [ ! -z "$HTTP_PROXY" ]; then git config --global http.proxy $HTTP_PROXY; fi
 
