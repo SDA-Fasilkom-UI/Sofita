@@ -25,4 +25,7 @@ RUN if [ ! -z "$HTTP_PROXY" ]; then pip3 --proxy $HTTP_PROXY install --no-build-
 
 COPY . /graderng
 
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV PATH $PATH:$JAVA_HOME/bin
+
 ENTRYPOINT ["./entrypoint.sh"]
