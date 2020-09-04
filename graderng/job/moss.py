@@ -4,6 +4,7 @@ import os
 import zipfile
 
 from bs4 import BeautifulSoup
+from gevent.threadpool import ThreadPoolExecutor
 
 from app.proxy_socket import ProxySocket
 from app.proxy_requests import ProxyRequests
@@ -75,8 +76,9 @@ class MossUploader():
         s.send("show {}\n".format(self.options['n']).encode())
 
         s.send("language {}\n".format(self.options['l']).encode())
-        recv = s.recv(1024)
-        if recv == "no":
+
+        resp = s.recv(1024)
+        if resp == "no":
             s.send(b"end\n")
             s.close()
             raise Exception("send() => Language not accepted by server")
@@ -91,12 +93,12 @@ class MossUploader():
 
         s.send("query 0 {}\n".format(self.options['c']).encode())
 
-        response = s.recv(1024)
+        resp = s.recv(1024)
 
         s.send(b"end\n")
         s.close()
 
-        return response.decode().replace("\n", "")
+        return resp.decode().replace("\n", "")
 
 
 class MossDownloader():
@@ -155,26 +157,30 @@ class MossDownloader():
         buf = io.BytesIO()
         zf = zipfile.ZipFile(buf, "a", zipfile.ZIP_DEFLATED, False)
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=32) as executor:
             processed_urls = set([url])
-            curr_futures = [executor.submit(self.process_url, url, base_url)]
-            next_futures = []
+            curr_urls = [url]
+            next_urls = []
 
-            while len(curr_futures) > 0:
-                for future in concurrent.futures.as_completed(curr_futures):
+            while len(curr_urls) > 0:
+                futures = []
+                for url in curr_urls:
+                    futures.append(executor.submit(
+                        self.process_url,
+                        url, base_url
+                    ))
 
+                for future in concurrent.futures.as_completed(futures):
                     filename, content, urls = future.result()
                     zf.writestr(filename, content)
 
                     for url in urls:
                         if url not in processed_urls:
                             processed_urls.add(url)
-                            next_futures.append(executor.submit(
-                                self.process_url, url, base_url)
-                            )
+                            next_urls.append(url)
 
-                curr_futures = next_futures
-                next_futures = []
+                curr_urls = next_urls
+                next_urls = []
 
         zf.close()
         return buf

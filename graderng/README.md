@@ -57,9 +57,9 @@ Data Structures and Algorithms Grader
    SCELE_URL=http://172.20.0.1/webservice/rest/server.php
    SCELE_TOKEN=887bfe50daa8b8e518dd38e3832199b6
 
-   TESTCASE_CONCURRENCY = 8
    CELERY_CONCURRENCY = 2
-   GUNICORN_THREADS = 2
+   TESTCASE_CONCURRENCY = 8
+   FEEDBACKS_JOBS_CONCURRENCY = 4
    ```
 
 1. Run all services.

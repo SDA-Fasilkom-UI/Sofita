@@ -175,6 +175,11 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
     'queue_order_strategy': 'priority',
 }
 
+CELERY_TASK_ROUTES = {
+    "grader.tasks.send_feedback": {"queue": "feedbacks_jobs"},
+    "job.tasks.*": {"queue": "feedbacks_jobs"}
+}
+
 
 # SCELE
 

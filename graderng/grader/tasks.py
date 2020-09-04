@@ -54,7 +54,7 @@ def skip(assignment_id, course_id, activity_id, user_id, attempt_number):
     return "OK"
 
 
-@shared_task(bind=True, max_retries=10, priority=K_REDIS_HIGH_PRIORITY)
+@shared_task(bind=True, max_retries=10)
 def send_feedback(self, assignment_id, course_id, activity_id, user_id, attempt_number, feedback, grade):
     url = settings.SCELE_URL
     base_params = {

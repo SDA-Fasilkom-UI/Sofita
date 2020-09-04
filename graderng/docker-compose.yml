@@ -26,9 +26,24 @@ services:
       - redis
       - mongo
       - web
-    command: ["celery"]
+    command: ["worker"]
     env_file: .env
     privileged: true
+    volumes:
+      - ${DJANGO_MEDIA_LOCATION}:/graderng/media
+
+  feedbacks_jobs:
+    build:
+      context: .
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+    restart: always
+    depends_on:
+      - redis
+      - mongo
+      - web
+    command: ["feedbacks_jobs"]
+    env_file: .env
     volumes:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 

@@ -8,13 +8,12 @@ from django.db.models import Max
 from django.conf import settings
 from django.utils import timezone
 
-from app.constants import K_REDIS_LOW_PRIORITY
 from grader.models import Submission
 from job.models import MossJob, ReportJob
-from job.utils import MossDownloader, MossUploader
+from job.moss import MossDownloader, MossUploader
 
 
-@shared_task(soft_time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
+@shared_task(soft_time_limit=30*60)
 def check_plagiarism(moss_job_id):
     moss_job = MossJob.objects.filter(_id=moss_job_id).first()
 
@@ -87,7 +86,7 @@ def check_plagiarism(moss_job_id):
         return ("FAIL", tb)
 
 
-@shared_task(soft_time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
+@shared_task(soft_time_limit=30*60)
 def generate_report(report_job_id):
     report_job = ReportJob.objects.filter(_id=report_job_id).first()
 
