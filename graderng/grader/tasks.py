@@ -15,7 +15,7 @@ from grader.models import Submission
 from grader.runner import JavaRunner
 
 
-@shared_task
+@shared_task(acks_late=True)
 def grade(submission_id, assignment_id, course_id, activity_id, user_id, attempt_number):
     sub = Submission.objects.filter(_id=submission_id).first()
 
