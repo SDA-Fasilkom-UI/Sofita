@@ -21,7 +21,6 @@ RUN git clone --branch $ISOLATE_VERSION --depth 1 https://github.com/ioi/isolate
 ENV HOME_DIR=/home/nonroot
 
 RUN useradd -m -d $HOME_DIR -s /bin/bash nonroot
-USER nonroot
 
 RUN mkdir $HOME_DIR/graderng
 WORKDIR $HOME_DIR/graderng
@@ -31,6 +30,8 @@ COPY requirements.txt $HOME_DIR/graderng/requirements.txt
 RUN if [ ! -z "$HTTP_PROXY" ]; then pip3 --proxy $HTTP_PROXY install --no-build-isolation -r requirements.txt; \
     else pip3 install -r requirements.txt; fi
 
-COPY . /graderng
+COPY . $HOME_DIR/graderng
+
+USER nonroot
 
 ENTRYPOINT ["./entrypoint.sh"]
