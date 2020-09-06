@@ -211,8 +211,3 @@ HTTP_PROXY = os.environ.get("HTTP_PROXY")
 # MOSS
 
 MOSS_USER_ID = os.environ.get("MOSS_USER_ID")
-
-
-# MISC
-
-TESTCASE_CONCURRENCY = int(os.environ.get("TESTCASE_CONCURRENCY", 1))
