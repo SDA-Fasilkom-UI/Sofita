@@ -1,7 +1,6 @@
 import base64
 import os
 
-from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
@@ -57,7 +56,7 @@ def grade(request):
         time_modified=data['timemodified']
     )
 
-    tasks.grade.apply_async(
+    tasks.grade_submission.apply_async(
         (sub.id_, sub.assignment_id, sub.course_id,
          sub.activity_id, sub.user_id, sub.attempt_number),
         priority=K_REDIS_HIGH_PRIORITY

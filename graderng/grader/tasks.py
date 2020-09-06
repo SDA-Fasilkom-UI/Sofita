@@ -1,48 +1,196 @@
 import random
-import requests
+import traceback
 
-from celery import shared_task
+from celery import group, shared_task
+from celery.result import allow_join_result
 from django.conf import settings
 from django.db.models import Max
 
 from app.constants import K_REDIS_HIGH_PRIORITY
 from app.proxy_requests import ProxyRequests
 from grader.constants import (
+    COMPILATION_ERROR,
+    DIRECTORY_NOT_FOUND_OR_INVALID_ERROR,
+    DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT,
+    INTERNAL_ERROR,
     SUBMISSION_SKIPPED,
-    SUBMISSION_NOT_FOUND
+    SUBMISSION_NOT_FOUND,
+    VERDICT_FEEDBACK,
 )
+from grader import cache
 from grader.models import Submission
 from grader.runner import JavaRunner
+from grader.utils import (
+    InputOutputNotFoundException,
+    compress_gzip_file,
+    decompress_gzip_file,
+    get_tc_path,
+    render_html,
+    verdict_to_text,
+)
+
+
+def save_sub(sub, status, verdict, grade):
+    sub.status = status
+    sub.verdict = verdict
+    sub.grade = grade
+    sub.save()
 
 
 @shared_task(acks_late=True)
-def grade(submission_id, assignment_id, course_id, activity_id, user_id, attempt_number):
+def grade_submission(submission_id, assignment_id, course_id, activity_id, user_id, attempt_number):
     sub = Submission.objects.filter(_id=submission_id).first()
-
     if sub is None:
         send_feedback.delay(
             assignment_id, course_id, activity_id, user_id, attempt_number,
             SUBMISSION_NOT_FOUND, 0
         )
-
-        return "FAIL"
+        return "FAIL (SUBMISSION_NOT_FOUND)"
 
     sub.status = Submission.GRADING
     sub.save()
 
-    grade, feedback, verdict = JavaRunner(sub).grade_submission()
+    cases_path, num_tc = JavaRunner.validate_and_get_cases_path(
+        sub.problem_name)
+    if cases_path is None:
+        save_sub(sub, Submission.DONE,
+                 DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT, 0)
 
-    sub.status = Submission.DONE
-    sub.verdict = verdict
-    sub.grade = grade
-    sub.save()
+        send_feedback.delay(
+            assignment_id, course_id, activity_id, user_id, attempt_number,
+            DIRECTORY_NOT_FOUND_OR_INVALID_ERROR, 0
+        )
+        return "FAIL (DIRECTORY_NOT_FOUND_OR_INVALID)"
 
+    compile_code, error, exec_content, exec_name = JavaRunner.compile(
+        sub.content,
+        sub.filename
+    )
+    if compile_code != 0:
+        error_minimum = "\n".join(error.split("\n")[:20])
+
+        save_sub(sub, Submission.DONE, error_minimum, 0)
+
+        feedback = render_html(
+            COMPILATION_ERROR, {"error": error_minimum})
+        send_feedback.delay(
+            assignment_id, course_id, activity_id, user_id, attempt_number,
+            feedback, 0
+        )
+        return "OK (COMPILE_ERROR)"
+
+    tc_verdict = {}
+
+    curr_tc = list(range(num_tc))
+    failed_tc = []
+    retry_cnt = {}
+    while(len(curr_tc) > 0):
+        tasks = []
+        for tc in curr_tc:
+            cache_manager = cache.RedisCacheManager(
+                sub.problem_name, tc, cases_path)
+
+            if not cache_manager.exists():
+                in_path, out_path = get_tc_path(cases_path, tc)
+                in_gzip = compress_gzip_file(in_path)
+                out_gzip = compress_gzip_file(out_path)
+
+                cache_manager.insert(in_gzip, out_gzip)
+
+            tasks.append(grade_testcase.signature((
+                exec_content, exec_name, sub.time_limit, sub.memory_limit,
+                sub.problem_name, tc
+            )))
+
+        tasks_group = group(tasks)
+        tasks_result = tasks_group.apply_async()
+
+        # allow waiting task inside task
+        with allow_join_result():
+            result = tasks_result.get(propagate=False)
+
+        for i, res in enumerate(result):
+            tc = curr_tc[i]
+            if isinstance(res, Exception):
+                retry_cnt[tc] = retry_cnt.get(tc, 0) + 1
+                if retry_cnt[tc] <= 5:
+                    failed_tc.append(tc)
+                else:
+                    try:
+                        raise res
+                    except:
+                        tb = traceback.format_exc(10)
+
+                    save_sub(sub, Submission.ERROR, tb, 0)
+                    send_feedback.delay(
+                        assignment_id, course_id, activity_id, user_id, attempt_number,
+                        INTERNAL_ERROR, 0
+                    )
+                    return "FAIL (RETRY EXCEEDED)"
+
+            else:
+                tc_verdict[tc] = res
+
+        curr_tc = failed_tc
+        failed_tc = []
+
+    verdict = []
+    for i in range(num_tc):
+        verdict.append(tc_verdict[i])
+
+    verdict_text = verdict_to_text(verdict)
+
+    num_ac = len([x for x in verdict if x[0] == "AC"])
+    grade = num_ac * 100 / len(verdict)
+
+    save_sub(sub, Submission.DONE, verdict_text, grade)
+
+    feedback = render_html(VERDICT_FEEDBACK, {
+        "grade": grade,
+        "verdict": verdict
+    })
     send_feedback.delay(
         assignment_id, course_id, activity_id, user_id, attempt_number,
         feedback, grade
     )
-
     return "OK"
+
+
+@shared_task(acks_late=True)
+def grade_testcase(exec_content, exec_name, time_limit, memory_limit, problem_name, tc):
+    redis_cache = cache.RedisCacheManager(problem_name, tc)
+    disk_cache = cache.DiskCacheManager(problem_name, tc)
+
+    r_time = redis_cache.get_time_content()
+    if not all(r_time):
+        raise InputOutputNotFoundException(
+            "Input output time not found in redis")
+
+    d_time = disk_cache.get_time_content()
+    if not all(d_time) or d_time[0] < r_time[0] or d_time[1] < r_time[1]:
+        r_gzip = redis_cache.get_content()
+        if not all(r_gzip):
+            raise InputOutputNotFoundException(
+                "Input output not found in redis")
+
+        disk_cache.insert(*r_time, *r_gzip)
+
+    in_gzip, out_gzip = disk_cache.get_content()
+
+    if (in_gzip is None) or (out_gzip is None):
+        raise InputOutputNotFoundException("Input output not in disk cache")
+
+    input_text = decompress_gzip_file(in_gzip)
+    output_text = decompress_gzip_file(out_gzip)
+
+    return JavaRunner.run(
+        exec_content,
+        exec_name,
+        time_limit,
+        memory_limit,
+        input_text,
+        output_text
+    )
 
 
 @shared_task(priority=K_REDIS_HIGH_PRIORITY)

@@ -5,6 +5,12 @@ DIRECTORY_NOT_FOUND_OR_INVALID_ERROR = \
     <p> Problem directory is not found or invalid, contact assistant </p>
     """
 
+INTERNAL_ERROR = \
+    """
+    <p><b> Error | Attempt Grade: 0 </b></p>
+    <p> Internal error, contact assistant </p>
+    """
+
 COMPILATION_ERROR = \
     """
     {% load grader_extras %}

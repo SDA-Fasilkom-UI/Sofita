@@ -103,7 +103,7 @@ class Sandbox():
 
     def diff_ignore_whitespace(self, file1, file2):
         diff_command = ["/bin/bash", "-c",
-                        "diff -Z {} {}".format(file1, file2)]
+                        "diff -qZ {} {}".format(file1, file2)]
         cmd = self._build_command(diff_command)
 
         p = subprocess.run(cmd, stdout=subprocess.PIPE,
@@ -134,7 +134,7 @@ class JavaSandbox(Sandbox):
     def run(self, filename, time_limit, memory_limit, input_path, output_path):
         run_command = ["/bin/bash", "-c", "java -jar {}".format(filename)]
 
-        sub_output = "sub_output"
+        sub_output = "sub_output.txt"
         cmd = self._build_command(
             run_command,
             time_limit=time_limit,
