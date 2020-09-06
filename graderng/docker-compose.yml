@@ -13,7 +13,7 @@ services:
     ports:
       - 18080:18080
     volumes:
-      - ${DJANGO_MEDIA_LOCATION}:/graderng/media
+      - ${DJANGO_MEDIA_LOCATION}:/home/nonroot/graderng/media
 
   worker:
     build:
@@ -28,7 +28,7 @@ services:
     env_file: .env
     privileged: true
     volumes:
-      - ${DJANGO_MEDIA_LOCATION}:/graderng/media
+      - ${DJANGO_MEDIA_LOCATION}:/home/nonroot/graderng/media
 
   feedbacks_jobs:
     build:
