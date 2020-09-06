@@ -170,15 +170,24 @@ REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
 CELERY_BROKER_URL = "redis://:{}@{}:{}/0".format(
     REDIS_PASSWORD or "", REDIS_HOST, REDIS_PORT)
 
+CELERY_RESULT_BACKEND = "redis://:{}@{}:{}/0".format(
+    REDIS_PASSWORD or "", REDIS_HOST, REDIS_PORT)
+
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'priority_steps': list(range(10)),
     'queue_order_strategy': 'priority',
+    'visibility_timeout': 10*60,  # 10 mins
 }
 
 CELERY_TASK_ROUTES = {
     "grader.tasks.send_feedback": {"queue": "feedbacks_jobs"},
+    "grader.tasks.grade_testcase": {"queue": "testcases"},
     "job.tasks.*": {"queue": "feedbacks_jobs"}
 }
+
+CELERY_ACCEPT_CONTENT = ["pickle"]
+
+CELERY_TASK_SERIALIZER = CELERY_RESULT_SERIALIZER = "pickle"
 
 
 # SCELE

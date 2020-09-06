@@ -14,7 +14,7 @@ class SubmissionAdminActions():
     def regrade_submissions(modeladmin, request, queryset):
         queryset.update(status=Submission.PENDING)
         for sub in queryset.all():
-            tasks.grade.apply_async(
+            tasks.grade_submission.apply_async(
                 (sub.id_, sub.assignment_id, sub.course_id,
                  sub.activity_id, sub.user_id, sub.attempt_number),
                 priority=K_REDIS_LOW_PRIORITY)

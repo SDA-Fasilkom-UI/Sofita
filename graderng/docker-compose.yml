@@ -12,7 +12,6 @@ services:
     env_file: .env
     ports:
       - 18080:18080
-    privileged: true
     volumes:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 
@@ -25,7 +24,6 @@ services:
     depends_on:
       - redis
       - mongo
-      - web
     command: ["worker"]
     env_file: .env
     privileged: true
@@ -41,11 +39,20 @@ services:
     depends_on:
       - redis
       - mongo
-      - web
     command: ["feedbacks_jobs"]
     env_file: .env
-    volumes:
-      - ${DJANGO_MEDIA_LOCATION}:/graderng/media
+
+  testcases:
+    build:
+      context: .
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+    restart: always
+    depends_on:
+      - redis
+    command: ["testcases"]
+    env_file: .env
+    privileged: true
 
   redis:
     image: redis:5.0.6

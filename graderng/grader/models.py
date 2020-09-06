@@ -9,10 +9,12 @@ from app.models import BaseModel
 class Submission(BaseModel):
     PENDING = "P"
     GRADING = "G"
+    ERROR = "E"
     DONE = "D"
     STATUS_CHOICES = [
         (PENDING, 'Pending'),
         (GRADING, 'Grading'),
+        (ERROR, 'Error'),
         (DONE, 'Done'),
     ]
 
