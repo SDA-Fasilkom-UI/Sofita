@@ -10,13 +10,19 @@ redis_conn = redis.Redis(connection_pool=redis_connection_pool)
 
 class Sandbox():
 
+    FILESIZE_LIMIT = 10  # MB
+    FILESIZE_SOFT_LIMIT = FILESIZE_LIMIT - 1
+
     def __init__(self):
         self.box_id = None
         self.box_path = None
         self.files = set()
         self.dirs = set()
 
-    def _build_command(self, command, time_limit=None, memory_limit=None, stdin=None, stdout=None):
+    def _build_command(self, command,
+                       filesize_limit=FILESIZE_LIMIT, time_limit=None,
+                       memory_limit=None, stdin=None, stdout=None):
+
         base = ["isolate", "-b", str(self.box_id), "--cg"]
 
         for directory in self.dirs:
@@ -26,6 +32,8 @@ class Sandbox():
 
         base.append("--cg-timing")
         base.append("--processes")
+
+        base.append("--fsize={}".format(filesize_limit * 1024))
 
         if time_limit is not None:
             base.append("--time={}".format(time_limit))
@@ -58,7 +66,7 @@ class Sandbox():
         cmd = ["isolate", "-b", str(self.box_id), "--cg"]
         cmd.append("--init")
 
-        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.run(cmd, capture_output=True)
 
         if p.returncode != 0:
             raise SandboxException(
@@ -87,7 +95,11 @@ class Sandbox():
     def mount_dir(self, dir_):
         self.dirs.add(dir_)
 
-    def parse_meta(self):
+    def _check_output_size(self, sub_output):
+        sub_output_path = os.path.join(self.box_path, sub_output)
+        return os.path.getsize(sub_output_path)
+
+    def _parse_meta(self):
         meta_path = os.path.join(self.box_path, "_isolate.meta")
         result = {}
         if os.path.isfile(meta_path):
@@ -101,7 +113,7 @@ class Sandbox():
         result["time"] = float(result.get("time", -1))
         return result
 
-    def diff_ignore_whitespace(self, file1, file2):
+    def _diff_ignore_whitespace(self, file1, file2):
         diff_command = ["/bin/bash", "-c",
                         "diff -qZ {} {}".format(file1, file2)]
         cmd = self._build_command(diff_command)
@@ -110,6 +122,30 @@ class Sandbox():
                            stderr=subprocess.PIPE)
 
         return p.returncode == 0
+
+    def run(self, filename, time_limit, memory_limit, input_path, output_path):
+        sub_output = "sub_output.txt"
+        ok = self._run(filename, time_limit, memory_limit,
+                       input_path, sub_output)
+
+        result = self._parse_meta()
+
+        # some program do not throw exception when stdout larger than
+        # filesize limit, the workaround is to check it manually
+        soft_limit = self.FILESIZE_SOFT_LIMIT * 1024 * 1024
+        sub_output_size = self._check_output_size(sub_output)
+        if sub_output_size >= soft_limit:
+            return "SG", result["time"]
+
+        if ok:
+            is_same = self._diff_ignore_whitespace(output_path, sub_output)
+            return ("AC" if is_same else "WA", result["time"])
+        else:
+            status = {"RE": "RTE", "TO": "TLE", "SG": "SG", "XX": "XX"}
+            return (status[result["status"]], result["time"])
+
+    def _run(self, filename, time_limit, memory_limit, input_path, sub_output):
+        raise SandboxException("Function `_run` not implemented")
 
 
 class JavaSandbox(Sandbox):
@@ -127,14 +163,12 @@ class JavaSandbox(Sandbox):
 
         cmd = self._build_command(compile_command)
 
-        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+        p = subprocess.run(cmd, capture_output=True)
         return (p.returncode, p.stderr.decode(), jar_name)
 
-    def run(self, filename, time_limit, memory_limit, input_path, output_path):
+    def _run(self, filename, time_limit, memory_limit, input_path, sub_output):
         run_command = ["/bin/bash", "-c", "java -jar {}".format(filename)]
 
-        sub_output = "sub_output.txt"
         cmd = self._build_command(
             run_command,
             time_limit=time_limit,
@@ -143,16 +177,8 @@ class JavaSandbox(Sandbox):
             stdout=sub_output
         )
 
-        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        result = self.parse_meta()
-
-        if p.returncode == 0:
-            is_same = self.diff_ignore_whitespace(output_path, sub_output)
-            return ("AC" if is_same else "WA", result["time"])
-
-        else:
-            status = {"RE": "RTE", "TO": "TLE", "SG": "XX", "XX": "XX"}
-            return (status[result["status"]], result["time"])
+        p = subprocess.run(cmd, capture_output=True)
+        return p.returncode == 0
 
 
 class SandboxException(Exception):

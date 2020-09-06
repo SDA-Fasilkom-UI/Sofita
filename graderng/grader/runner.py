@@ -37,6 +37,9 @@ class Runner():
 
     @classmethod
     def compile(cls, content, filename):
+        if cls.Sandbox is None:
+            raise NotImplementedError("Sandbox not implemented")
+
         try:
             sandbox = cls.Sandbox()
             sandbox.init_isolate()
@@ -58,6 +61,9 @@ class Runner():
 
     @classmethod
     def run(cls, exec_content, exec_name, time_limit, memory_limit, input_text, output_text):
+        if cls.Sandbox is None:
+            raise NotImplementedError("Sandbox not implemented")
+
         try:
             sandbox = cls.Sandbox()
             sandbox.init_isolate()

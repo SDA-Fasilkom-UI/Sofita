@@ -63,6 +63,7 @@ VERDICT_FEEDBACK = \
         WA : Wrong Answer<br>
         RTE: Runtime Error<br>
         TLE: Time Limit Exceeded<br>
+        SG : Program Died on a Signal<br>
         XX : Unknown Error
     </tt></p>
     """
