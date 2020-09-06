@@ -33,4 +33,4 @@ COPY . $HOME_DIR/graderng
 RUN chown -R nonroot $HOME_DIR/graderng
 USER nonroot
 
-CMD tail -f /dev/null
+ENTRYPOINT ["./entrypoint.sh"]
