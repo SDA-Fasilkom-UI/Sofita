@@ -22,6 +22,10 @@ Data Structures and Algorithms Grader
    ```
    celery -A graderng worker --loglevel=info
    ```
+1. Run testcases.
+   ```
+   celery -A graderng worker -Q testcases --loglevel=info
+   ```
 1. Run feedbacks and jobs.
    ```
    celery -A graderng worker -Q feedbacks_jobs --loglevel=info
@@ -100,7 +104,7 @@ Then, we have to enable the memory and swap accounting in control groups. Follow
 1. Reboot the machine.
 1. Verify that either the **/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes** file or **/sys/fs/cgroup/memory/memory.soft_limit_in_bytes** file exists.
 
-Source: https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.html
+Source (here.)[https://judgels.readthedocs.io/en/latest/administrator/gabriel/setup.html#installing-control-groups-in-linux]
 
 ## Important Notes
 
