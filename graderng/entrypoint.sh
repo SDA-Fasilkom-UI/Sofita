@@ -1,5 +1,9 @@
 #!/bin/bash
 
+set -e
+
+chown -R nonroot media/
+
 if [ "$1" == "worker" ]; then
     celery -A graderng worker -l info --concurrency=$WORKER_CONCURRENCY
 elif [ "$1" == "testcases" ]; then
