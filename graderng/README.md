@@ -112,5 +112,5 @@ Source [here.](https://judgels.readthedocs.io/en/latest/administrator/gabriel/se
 1. `--privileged` is used due to https://github.com/ioi/isolate/issues/35
 1. When creating media directory for docker volume binding, please specify `uid` to 1300 and `gid` to 1300.
    ```
-   sudo chown -R 1300:1300 data
+   sudo chown -R 1300:1300 <media_dir_on_host>
    ```
