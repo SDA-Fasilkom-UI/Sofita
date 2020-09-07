@@ -27,4 +27,6 @@ RUN if [ ! -z "$HTTP_PROXY" ]; then pip3 --proxy $HTTP_PROXY install --no-build-
 
 COPY . /graderng
 
+ENV C_FORCE_ROOT true
+
 ENTRYPOINT ["./entrypoint.sh"]

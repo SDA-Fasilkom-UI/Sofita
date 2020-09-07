@@ -185,6 +185,10 @@ CELERY_TASK_ROUTES = {
     "job.tasks.*": {"queue": "feedbacks_jobs"}
 }
 
+CELERY_ACCEPT_CONTENT = ["pickle"]
+
+CELERY_TASK_SERIALIZER = CELERY_RESULT_SERIALIZER = "pickle"
+
 
 # SCELE
 
