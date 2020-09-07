@@ -31,6 +31,5 @@ RUN if [ ! -z "$HTTP_PROXY" ]; then pip3 --proxy $HTTP_PROXY install --no-build-
 COPY . $HOME_DIR/graderng
 
 RUN chown -R nonroot $HOME_DIR/graderng
-USER nonroot
 
 ENTRYPOINT ["./entrypoint.sh"]

@@ -2,7 +2,9 @@
 
 set -e
 
+# set the mounted volume to writeable
 chown -R nonroot media/
+su - nonroot
 
 if [ "$1" == "worker" ]; then
     celery -A graderng worker -l info --concurrency=$WORKER_CONCURRENCY
