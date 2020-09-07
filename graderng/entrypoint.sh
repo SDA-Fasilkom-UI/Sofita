@@ -9,5 +9,5 @@ elif [ "$1" == "feedbacks_jobs" ]; then
 else
     python3 manage.py collectstatic --noinput
     python3 manage.py migrate
-    gunicorn graderng.wsgi --worker-clas gevent --bind 0.0.0.0:8080 --log-level info --capture-output --log-file -
+    gunicorn graderng.wsgi --worker-clas gevent --bind 0.0.0.0:8080 --log-level info --log-file -
 fi
