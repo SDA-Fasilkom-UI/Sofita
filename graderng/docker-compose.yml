@@ -5,6 +5,7 @@ services:
       context: .
       args:
         HTTP_PROXY: ${HTTP_PROXY}
+    image: grader-base
     restart: always
     depends_on:
       - redis
@@ -16,10 +17,7 @@ services:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 
   worker:
-    build:
-      context: .
-      args:
-        HTTP_PROXY: ${HTTP_PROXY}
+    image: grader-base
     restart: always
     depends_on:
       - redis
@@ -31,10 +29,7 @@ services:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 
   feedbacks_jobs:
-    build:
-      context: .
-      args:
-        HTTP_PROXY: ${HTTP_PROXY}
+    image: grader-base
     restart: always
     depends_on:
       - redis
@@ -45,10 +40,7 @@ services:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 
   testcases:
-    build:
-      context: .
-      args:
-        HTTP_PROXY: ${HTTP_PROXY}
+    image: grader-base
     restart: always
     depends_on:
       - redis
