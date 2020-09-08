@@ -6,8 +6,8 @@ from app.models import Token
 
 
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'is_staff', 'is_superuser')
-    list_filter = ('is_staff', 'is_superuser',)
+    list_display = ('username', 'is_active', 'is_staff', 'is_superuser')
+    list_filter = ('is_active', 'is_staff', 'is_superuser',)
 
 
 class TokenAdmin(admin.ModelAdmin):
