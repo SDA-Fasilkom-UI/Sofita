@@ -10,7 +10,7 @@ redis_conn = redis.Redis(connection_pool=redis_connection_pool)
 
 class Sandbox():
 
-    FILESIZE_LIMIT = 10  # MB
+    FILESIZE_LIMIT = 20  # MB
     FILESIZE_SOFT_LIMIT = FILESIZE_LIMIT - 1
 
     def __init__(self):
