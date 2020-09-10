@@ -1,0 +1,24 @@
+{% extends "admin/base_site.html" %} {% block content %}
+<form action="" method="post">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="change_time_and_memory_limit" />
+  <input type="hidden" name="do_action" value="yes" />
+
+  <label for="{{form.time_limit.id_for_label}}">Time Limit:</label><br />
+  {{ form.time_limit }} {{ form.time_limit.errors }} <br />
+
+  <br />
+
+  <label for="{{form.memory_limit.id_for_label}}">Memory Limit:</label><br />
+  {{ form.memory_limit }} {{ form.memory_limit.errors }} <br />
+
+  <br />
+
+  {% for object in objects %}
+  <input type="hidden" name="_selected_action" value="{{ object.pk }}" />
+  {% endfor %}
+
+  <label for="id_submit">Change for {{objects|length}} submission?</label><br />
+  <input id="id_submit" type="submit" value="Change" />
+</form>
+{% endblock %}

@@ -1,14 +1,13 @@
+from django import forms
 from django.contrib import admin, messages
+from django.shortcuts import render
 
 from app.constants import K_REDIS_LOW_PRIORITY
 from grader import tasks
 from grader.models import Submission
 
 
-class SubmissionAdminActions():
-    """
-    Container for functions/actions that need to be used by other SubmissionAdmin
-    """
+class SubmissionAdminAction():
 
     @staticmethod
     def regrade_submissions(modeladmin, request, queryset):
@@ -20,7 +19,49 @@ class SubmissionAdminActions():
                 priority=K_REDIS_LOW_PRIORITY)
 
         modeladmin.message_user(
-            request, "Selected submission will be regraded")
+            request, "Selected submission will be regraded.")
+
+
+class TimeMemoryLimitAction():
+
+    template = 'admin/time_memory_limit_form.html'
+    max_submission = 500
+
+    class TimeMemoryLimitForm(forms.Form):
+        time_limit = forms.IntegerField(min_value=1, max_value=5)
+        memory_limit = forms.IntegerField(min_value=64, max_value=256)
+
+    @classmethod
+    def change_time_and_memory_limit(cls, modeladmin, request, queryset):
+        if len(queryset) > cls.max_submission:
+            modeladmin.message_user(
+                request,
+                "Selected submission cannot be larger than {}.".format(
+                    cls.max_submission),
+                messages.ERROR
+            )
+            return
+
+        if 'do_action' in request.POST:
+            form = cls.TimeMemoryLimitForm(request.POST)
+            if form.is_valid():
+                time_limit = form.cleaned_data["time_limit"]
+                memory_limit = form.cleaned_data["memory_limit"]
+                queryset.update(time_limit=time_limit,
+                                memory_limit=memory_limit)
+
+                modeladmin.message_user(
+                    request, "Selected submission has been changed.")
+                return
+
+        else:
+            form = cls.TimeMemoryLimitForm()
+
+        return render(request, cls.template, {
+            "title": "Change time and memory limit",
+            "objects": queryset,
+            "form": form
+        })
 
 
 class InputFilter(admin.SimpleListFilter):
@@ -95,7 +136,10 @@ class SubmissionAdmin(admin.ModelAdmin):
     readonly_fields = ("grade", "verdict", "status", "assignment_id", "course_id", "activity_id", "user_id",
                        "id_number", "attempt_number", "due_date", "cut_off_date", "time_modified")
     list_filter = [AssignmentIDFilter, UserIDFilter, IDNumberFilter]
-    actions = [SubmissionAdminActions.regrade_submissions]
+    actions = [
+        SubmissionAdminAction.regrade_submissions,
+        TimeMemoryLimitAction.change_time_and_memory_limit
+    ]
 
     def has_add_permission(self, request, obj=None):
         return False
