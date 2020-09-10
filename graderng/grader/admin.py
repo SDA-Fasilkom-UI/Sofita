@@ -7,10 +7,29 @@ from grader import tasks
 from grader.models import Submission
 
 
+MAX_SUBMISSION_SELECTED = 500
+
+
+def check_selected_submission(modeladmin, request, queryset):
+    if len(queryset) > MAX_SUBMISSION_SELECTED:
+        modeladmin.message_user(
+            request,
+            "Selected submission cannot be larger than {}.".format(
+                MAX_SUBMISSION_SELECTED),
+            messages.ERROR
+        )
+        return False
+
+    return True
+
+
 class SubmissionAdminAction():
 
     @staticmethod
     def regrade_submissions(modeladmin, request, queryset):
+        if not check_selected_submission(modeladmin, request, queryset):
+            return
+
         queryset.update(status=Submission.PENDING)
         for sub in queryset.all():
             tasks.grade_submission.apply_async(
@@ -25,7 +44,6 @@ class SubmissionAdminAction():
 class TimeMemoryLimitAction():
 
     template = 'admin/time_memory_limit_form.html'
-    max_submission = 500
 
     class TimeMemoryLimitForm(forms.Form):
         time_limit = forms.IntegerField(min_value=1, max_value=5)
@@ -33,13 +51,7 @@ class TimeMemoryLimitAction():
 
     @classmethod
     def change_time_and_memory_limit(cls, modeladmin, request, queryset):
-        if len(queryset) > cls.max_submission:
-            modeladmin.message_user(
-                request,
-                "Selected submission cannot be larger than {}.".format(
-                    cls.max_submission),
-                messages.ERROR
-            )
+        if not check_selected_submission(modeladmin, request, queryset):
             return
 
         if 'do_action' in request.POST:
