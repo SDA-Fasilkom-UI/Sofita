@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$1" == "worker" ]; then
-    celery -A graderng worker -l info -O fair --concurrency=$WORKER_CONCURRENCY
+    celery -A graderng worker -l info -Ofair --concurrency=$WORKER_CONCURRENCY
 elif [ "$1" == "testcases" ]; then
     celery -A graderng worker -l info -Q testcases --concurrency=$TESTCASES_CONCURRENCY
 elif [ "$1" == "feedbacks_jobs" ]; then
