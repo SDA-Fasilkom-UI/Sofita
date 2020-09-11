@@ -11,6 +11,8 @@ redis_conn = redis.Redis(connection_pool=redis_connection_pool)
 
 class RedisCacheManager():
 
+    EXPIRE_TIME = 7  # days
+
     def __init__(self, problem_name, tc, cases_path=None):
         self.cases_path = cases_path
         self.problem_name = problem_name
@@ -28,7 +30,7 @@ class RedisCacheManager():
             out_key: out_gzip
         })
 
-        expire_time = datetime.timedelta(days=1)
+        expire_time = datetime.timedelta(days=self.EXPIRE_TIME)
         redis_conn.expire(self.get_hash_name(), expire_time)
 
     def exists(self):
