@@ -3,6 +3,8 @@ import os
 
 import redis
 
+from django.conf import settings
+
 from app import disk_cache, redis_connection_pool
 from grader.utils import get_tc_path
 
@@ -11,7 +13,7 @@ redis_conn = redis.Redis(connection_pool=redis_connection_pool)
 
 class RedisCacheManager():
 
-    EXPIRE_TIME = 7  # days
+    EXPIRE_TIME = settings.REDIS_CACHE_EXPIRE_TIME
 
     def __init__(self, problem_name, tc, cases_path=None):
         self.cases_path = cases_path
@@ -86,6 +88,9 @@ class RedisCacheManager():
 class DiskCacheManager():
 
     def __init__(self, problem_name, tc):
+        if not settings.DISK_CACHE_ENABLE:
+            raise DiskCacheManagerException("Disk cache is not enabled")
+
         self.problem_name = problem_name
         self.tc = tc
 
@@ -115,4 +120,8 @@ class DiskCacheManager():
 
 
 class RedisCacheManagerException(Exception):
+    pass
+
+
+class DiskCacheManagerException(Exception):
     pass

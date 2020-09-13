@@ -16,4 +16,6 @@ redis_conn.config_set("maxmemory", "1gb")
 redis_conn.config_set("maxmemory-policy", "volatile-lru")
 
 
-disk_cache = diskcache.Cache("__cache")
+disk_cache = None
+if settings.DISK_CACHE_ENABLE:
+    disk_cache = diskcache.Cache("__cache")

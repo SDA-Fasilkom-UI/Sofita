@@ -3,6 +3,8 @@ import os
 
 import redis
 
+from django.conf import settings
+
 from app import redis_connection_pool
 
 redis_conn = redis.Redis(connection_pool=redis_connection_pool)
@@ -10,7 +12,7 @@ redis_conn = redis.Redis(connection_pool=redis_connection_pool)
 
 class Sandbox():
 
-    FILESIZE_LIMIT = 20  # MB
+    FILESIZE_LIMIT = settings.FILESIZE_LIMIT
     FILESIZE_SOFT_LIMIT = FILESIZE_LIMIT - 1
 
     def __init__(self):

@@ -159,26 +159,31 @@ def grade_submission(submission_id, assignment_id, course_id, activity_id, user_
 @shared_task(acks_late=True)
 def grade_testcase(exec_content, exec_name, time_limit, memory_limit, problem_name, tc):
     redis_cache = cache.RedisCacheManager(problem_name, tc)
-    disk_cache = cache.DiskCacheManager(problem_name, tc)
 
     r_time = redis_cache.get_time_content()
     if not all(r_time):
         raise InputOutputNotFoundException(
             "Input output time not found in redis")
 
-    d_time = disk_cache.get_time_content()
-    if not all(d_time) or d_time[0] < r_time[0] or d_time[1] < r_time[1]:
-        r_gzip = redis_cache.get_content()
-        if not all(r_gzip):
-            raise InputOutputNotFoundException(
-                "Input output not found in redis")
+    if settings.DISK_CACHE_ENABLE:
+        disk_cache = cache.DiskCacheManager(problem_name, tc)
 
-        disk_cache.insert(*r_time, *r_gzip)
+        d_time = disk_cache.get_time_content()
+        if not all(d_time) or d_time[0] < r_time[0] or d_time[1] < r_time[1]:
+            r_gzip = redis_cache.get_content()
+            if not all(r_gzip):
+                raise InputOutputNotFoundException(
+                    "Input output not found in redis")
 
-    in_gzip, out_gzip = disk_cache.get_content()
+            disk_cache.insert(*r_time, *r_gzip)
+
+        in_gzip, out_gzip = disk_cache.get_content()
+
+    else:
+        in_gzip, out_gzip = redis_cache.get_content()
 
     if (in_gzip is None) or (out_gzip is None):
-        raise InputOutputNotFoundException("Input output not in disk cache")
+        raise InputOutputNotFoundException("Input output not found")
 
     input_text = decompress_gzip_file(in_gzip)
     output_text = decompress_gzip_file(out_gzip)
