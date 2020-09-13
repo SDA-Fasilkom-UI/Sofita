@@ -111,8 +111,7 @@ class Sandbox():
         self.dirs.add(dir_)
 
     def _check_output_size(self, sub_output):
-        sub_output_path = os.path.join(self.tempdir.name, sub_output)
-        return os.path.getsize(sub_output_path)
+        return os.path.getsize(sub_output)
 
     def _parse_meta(self):
         meta_path = os.path.join(self.tempdir.name, "_isolate.meta")
@@ -139,7 +138,7 @@ class Sandbox():
         return p.returncode == 0
 
     def _create_temporary_dir(self):
-        self.tempdir = self.tempfile.TemporaryDirectory(prefix="grader")
+        self.tempdir = self.tempfile.TemporaryDirectory(prefix="grader-")
         os.chmod(self.tempdir.name, 0o777)
 
     def _cleanup_temporary_dir(self):
