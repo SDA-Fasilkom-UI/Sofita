@@ -62,7 +62,7 @@ def grade_submission(submission_id, assignment_id, course_id, activity_id, user_
         )
         return "FAIL (DIRECTORY_NOT_FOUND_OR_INVALID)"
 
-    compile_code, error, exec_content, exec_name = JavaRunner.compile(
+    compile_code, error, exec_name, exec_content = JavaRunner.compile(
         sub.content,
         sub.filename
     )

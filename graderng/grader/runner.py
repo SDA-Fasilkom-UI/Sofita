@@ -45,16 +45,7 @@ class Runner():
             sandbox.init_isolate()
 
             sandbox.write_to_file(content, filename)
-            compile_code, error, exec_name = sandbox.compile(filename)
-
-            if compile_code == 0:
-                exec_path = os.path.join(sandbox.box_path, exec_name)
-                with open(exec_path, "rb") as f:
-                    exec_content = f.read()
-
-                return (compile_code, error, exec_content, exec_name)
-
-            return (compile_code, error, None, None)
+            return sandbox.compile(filename)
 
         finally:
             sandbox.cleanup_isolate()
@@ -68,22 +59,20 @@ class Runner():
             sandbox = cls.Sandbox()
             sandbox.init_isolate()
 
-            input_path = "input.txt"
-            output_path = "output.txt"
+            input_filename = "input.txt"
+            output_filename = "output.txt"
 
-            sandbox.write_to_file(input_text, input_path)
-            sandbox.write_to_file(output_text, output_path)
+            sandbox.write_to_file(input_text, input_filename)
+            sandbox.write_to_file(output_text, output_filename)
             sandbox.write_to_file(exec_content, exec_name, binary=True)
 
-            status, time = sandbox.run(
+            return sandbox.run(
                 exec_name,
                 time_limit,
                 memory_limit,
-                input_path,
-                output_path
+                input_filename,
+                output_filename
             )
-
-            return (status, time)
 
         finally:
             sandbox.cleanup_isolate()

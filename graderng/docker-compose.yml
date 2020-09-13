@@ -26,6 +26,8 @@ services:
     command: ["worker"]
     env_file: .env
     privileged: true
+    tmpfs:
+      - /tmp-grader
     volumes:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 
@@ -48,6 +50,8 @@ services:
     command: ["testcases"]
     env_file: .env
     privileged: true
+    tmpfs:
+      - /tmp-grader
 
   redis:
     image: redis:5.0.6
