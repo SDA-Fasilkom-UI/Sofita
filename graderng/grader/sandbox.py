@@ -19,6 +19,8 @@ class Sandbox():
     def __init__(self):
         self.box_id = None
         self.box_path = None
+        self.meta_path = None
+
         self.files = set()
         self.dirs = set()
 
@@ -62,8 +64,7 @@ class Sandbox():
         if stdout is not None:
             base.append('--stdout={}'.format(stdout))
 
-        meta_path = os.path.join(self.tempdir.name, "_isolate.meta")
-        base.append('--meta={}'.format(meta_path))
+        base.append('--meta={}'.format(self.meta_path))
 
         base.append("--run")
         base.append("--")
@@ -110,14 +111,10 @@ class Sandbox():
     def mount_dir(self, dir_):
         self.dirs.add(dir_)
 
-    def _check_output_size(self, sub_output):
-        return os.path.getsize(sub_output)
-
     def _parse_meta(self):
-        meta_path = os.path.join(self.tempdir.name, "_isolate.meta")
         result = {}
-        if os.path.isfile(meta_path):
-            with open(meta_path) as f:
+        if os.path.isfile(self.meta_path):
+            with open(self.meta_path) as f:
                 for line in f.readlines():
                     splitted = line.split(":")
                     if len(splitted) == 2:
@@ -140,6 +137,8 @@ class Sandbox():
     def _create_temporary_dir(self):
         self.tempdir = self.tempfile.TemporaryDirectory(prefix="grader-")
         os.chmod(self.tempdir.name, 0o777)
+
+        self.meta_path = os.path.join(self.tempdir.name, "_isolate.meta")
 
     def _cleanup_temporary_dir(self):
         self.tempdir.cleanup()
@@ -165,10 +164,10 @@ class Sandbox():
 
         result = self._parse_meta()
 
-        # some program do not throw exception when stdout larger than
+        # some lang do not throw exception when stdout larger than
         # filesize limit, the workaround is to check it manually
         soft_limit = self.FILESIZE_SOFT_LIMIT * 1024 * 1024
-        sub_output_size = self._check_output_size(sub_output)
+        sub_output_size = os.path.getsize(sub_output)
         if sub_output_size >= soft_limit:
             return "SG", result["time"]
 
