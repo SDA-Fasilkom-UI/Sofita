@@ -14,8 +14,11 @@ class assign_submission_gradersda extends assign_submission_plugin {
         'FILEDISABLED' => 'File submission is disabled, contact assistant'
     );
     public $timelimitoptions = array(1, 2, 3, 4, 5);
-    public $memorylimitoptions = array(64, 128, 192, 256);
+    public $memorylimitoptions = array(64, 128, 192, 256, 512);
     public $summary = "";
+
+    public $maxretry = 5;
+    public $retrysleepsecond = 2;
 
     /**
      * Get the name of the gradersda submission plugin
@@ -249,23 +252,30 @@ class assign_submission_gradersda extends assign_submission_plugin {
         $url = $CFG->grader_url . "/api/" . $action . "/";
         $token = $CFG->grader_token;
 
-        $handle = curl_init($url);
-        $encodeddata = json_encode($data);
+        $cntretry = 0;
+        $sent = false;
+        while (!$sent && $cntretry < $this->maxretry) {
+            $handle = curl_init($url);
+            $encodeddata = json_encode($data);
 
-        curl_setopt($handle, CURLOPT_POST, 1);
-        curl_setopt($handle, CURLOPT_POSTFIELDS, $encodeddata);
-        curl_setopt($handle, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'X-TOKEN: ' . $token]);
-        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($handle, CURLOPT_POST, 1);
+            curl_setopt($handle, CURLOPT_POSTFIELDS, $encodeddata);
+            curl_setopt($handle, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'X-TOKEN: ' . $token]);
+            curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
 
-        $result = curl_exec($handle);
-        $statuscode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+            $result = curl_exec($handle);
+            $statuscode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
 
-        $sent = true;
-        if (!$result || $statuscode !== 200) {
-            $sent = false;
+            $sent = true;
+            if (!$result || $statuscode !== 200) {
+                $sent = false;
+                sleep($this->retrysleepsecond);
+            }
+            curl_close($handle);
+
+            $cntretry = $cntretry + 1;
         }
 
-        curl_close($handle);
         return $sent;
     }
 

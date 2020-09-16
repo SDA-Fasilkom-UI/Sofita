@@ -39,6 +39,16 @@ def problems(request):
 @permission_classes([TokenPermission])
 def grade(request):
     data = request.data
+
+    sub = Submission.objects.filter(
+        attempt_number=data['attemptnumber'],
+        assignment_id=data['assignmentid'],
+        user_id=data['userid']
+    ).first()
+
+    if sub is not None:
+        return Response({"message": "ok"})
+
     sub = Submission.objects.create(
         filename=data['filename'],
         problem_name=data["problemname"],
