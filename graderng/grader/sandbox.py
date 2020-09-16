@@ -201,7 +201,8 @@ class JavaSandbox(Sandbox):
         return (p.returncode, p.stderr.decode(), jar_name)
 
     def _run(self, filename, time_limit, memory_limit, input_path, sub_output):
-        run_command = ["/bin/bash", "-c", "java -jar {}".format(filename)]
+        run_command = ["/bin/bash", "-c",
+                       "java -Xmx512M -Xss64M -jar {}".format(filename)]
 
         cmd = self._build_command(
             run_command,
