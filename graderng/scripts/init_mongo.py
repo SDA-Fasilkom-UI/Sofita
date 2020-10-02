@@ -15,10 +15,10 @@ DB_PASSWORD = os.environ.get('MONGO_PASSWORD')
 def main():
     if (DB_USERNAME is None) or (DB_PASSWORD is None):
         client = pymongo.MongoClient(
-            'mongodb://{}:{}/{}'.format(DB_HOST, DB_PORT, DB_NAME))
+            'mongodb://{}:{}'.format(DB_HOST, DB_PORT))
     else:
         client = pymongo.MongoClient(
-            'mongodb://{}:{}@{}:{}/{}'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME))
+            'mongodb://{}:{}@{}:{}'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT))
 
     db = client[DB_NAME]
 
