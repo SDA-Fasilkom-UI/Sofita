@@ -7,15 +7,16 @@ from grader import tasks
 from grader.models import Submission
 
 
-MAX_SUBMISSION_SELECTED = 500
-
-
 def check_selected_submission(modeladmin, request, queryset):
-    if len(queryset) > MAX_SUBMISSION_SELECTED:
+    assignment_ids = queryset.\
+        order_by("assignment_id").\
+        values_list("assignment_id", flat=True).\
+        distinct()
+
+    if len(assignment_ids) > 1:
         modeladmin.message_user(
             request,
-            "Selected submission cannot be larger than {}.".format(
-                MAX_SUBMISSION_SELECTED),
+            "Only one assignment ID allowed.",
             messages.ERROR
         )
         return False

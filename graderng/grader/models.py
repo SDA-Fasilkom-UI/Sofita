@@ -20,7 +20,7 @@ class Submission(BaseModel):
 
     problem_name = models.CharField(max_length=256)
     filename = models.CharField(max_length=256)
-    assignment_id = models.IntegerField()
+    assignment_id = models.IntegerField(db_index=True)
     course_id = models.IntegerField()
     activity_id = models.IntegerField()
     user_id = models.IntegerField()
