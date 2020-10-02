@@ -23,7 +23,7 @@ def hello(request):
     return HttpResponse(response)
 
 
-@user_passes_test(lambda u: u.is_superuser, login_url="admin:login")
+@user_passes_test(lambda u: u.is_staff, login_url="admin:login")
 def media(request, filename):
     """
     View to access media with login required.
