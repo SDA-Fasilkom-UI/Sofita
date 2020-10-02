@@ -2,7 +2,7 @@ import os
 import pymongo
 
 """ 
-This script intended for initiating mongo.
+This script intended for initializing mongo.
 """
 
 DB_NAME = os.environ.get('MONGO_DBNAME', 'test-mongo')
@@ -33,4 +33,6 @@ def main():
 
 
 if __name__ == "__main__":
+    print("[INIT_MONGO] Initializing mongo...")
     main()
+    print("[INIT_MONGO] Done...")
