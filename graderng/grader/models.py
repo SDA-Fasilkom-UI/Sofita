@@ -20,7 +20,7 @@ class Submission(BaseModel):
 
     problem_name = models.CharField(max_length=256)
     filename = models.CharField(max_length=256)
-    assignment_id = models.IntegerField(db_index=True)
+    assignment_id = models.IntegerField()
     course_id = models.IntegerField()
     activity_id = models.IntegerField()
     user_id = models.IntegerField()
@@ -32,7 +32,7 @@ class Submission(BaseModel):
 
     due_date = models.IntegerField()
     cut_off_date = models.IntegerField()
-    time_modified = models.IntegerField(db_index=True)
+    time_modified = models.IntegerField()
 
     grade = models.IntegerField(default=0)
     verdict = models.TextField()
