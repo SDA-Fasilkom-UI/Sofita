@@ -32,7 +32,7 @@ class Submission(BaseModel):
 
     due_date = models.IntegerField()
     cut_off_date = models.IntegerField()
-    time_modified = models.IntegerField()
+    time_modified = models.IntegerField(db_index=True)
 
     grade = models.IntegerField(default=0)
     verdict = models.TextField()
