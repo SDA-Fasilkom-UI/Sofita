@@ -48,7 +48,7 @@ class TimeMemoryLimitAction():
 
     class TimeMemoryLimitForm(forms.Form):
         time_limit = forms.IntegerField(min_value=1, max_value=5)
-        memory_limit = forms.IntegerField(min_value=64, max_value=256)
+        memory_limit = forms.IntegerField(min_value=64, max_value=512)
 
     @classmethod
     def change_time_and_memory_limit(cls, modeladmin, request, queryset):
@@ -72,8 +72,12 @@ class TimeMemoryLimitAction():
 
         return render(request, cls.template, {
             "title": "Change time and memory limit",
-            "objects": queryset,
-            "form": form
+            "form": form,
+
+            "action": request.POST.get("action"),
+            "select_across": request.POST.get("select_across"),
+            "index": request.POST.get("index"),
+            "selected_action": request.POST.getlist("_selected_action"),
         })
 
 
