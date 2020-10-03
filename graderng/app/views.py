@@ -5,22 +5,14 @@ from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
 from django.http import (
     Http404,
-    HttpResponse,
     FileResponse,
     StreamingHttpResponse
 )
+from django.shortcuts import render
 
 
 def hello(request):
-    response = \
-        """
-        Hello <br>
-        <button onclick="window.location.href = '/admin';">
-            Go to Admin Page
-        </button>
-        """
-
-    return HttpResponse(response)
+    return render(request, "homepage.html", {})
 
 
 @user_passes_test(lambda u: u.is_staff, login_url="admin:login")
