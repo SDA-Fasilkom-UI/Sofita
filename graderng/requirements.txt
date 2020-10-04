@@ -13,6 +13,7 @@ lupa==1.9
 lxml==4.5.2
 memory-tempfile==2.2.3
 Pillow==7.2.0
+pymongo==3.11.0
 PySocks==1.7.1
 redis==3.3.11
 requests==2.22.0

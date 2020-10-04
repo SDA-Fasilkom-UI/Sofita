@@ -1,9 +1,6 @@
 import os
 import pymongo
 
-""" 
-This script intended for initializing mongo.
-"""
 
 DB_NAME = os.environ.get('MONGO_DBNAME', 'test-mongo')
 DB_HOST = os.environ.get('MONGO_HOST', 'localhost')
@@ -13,15 +10,23 @@ DB_PASSWORD = os.environ.get('MONGO_PASSWORD')
 
 
 def main():
-    if (DB_USERNAME is None) or (DB_PASSWORD is None):
-        client = pymongo.MongoClient(
-            'mongodb://{}:{}'.format(DB_HOST, DB_PORT))
-    else:
-        client = pymongo.MongoClient(
-            'mongodb://{}:{}@{}:{}'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT))
-
+    client = pymongo.MongoClient(
+        host=DB_HOST,
+        port=DB_PORT,
+        username=DB_USERNAME,
+        password=DB_PASSWORD,
+    )
     db = client[DB_NAME]
 
+    k01_grader_job_index(db)
+
+    client.close()
+
+
+def k01_grader_job_index(db):
+    """
+    Add index to grader and job
+    """
     col_subs = db.grader_submission
     col_subs.create_index([("time_modified", -1), ("_id", -1)])
 

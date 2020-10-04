@@ -147,6 +147,39 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
+# LOGGING
+
+if not DEBUG:
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "root": {"level": "ERROR", "handlers": ["console"]},
+        "handlers": {
+            "console": {
+                "level": "ERROR",
+                'class': 'logging.StreamHandler',
+                "formatter": "default",
+            },
+        },
+        "loggers": {
+            "django": {
+                "handlers": ["console"],
+                "level": "ERROR",
+                "propagate": True
+            },
+        },
+        "formatters": {
+            "default": {
+                "format": (
+                    u"%(asctime)s [%(levelname)-8s] "
+                    "(%(module)s.%(funcName)s) %(message)s"
+                ),
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+        },
+    }
+
+
 # FileBrowser
 
 FILEBROWSER_DIRECTORY = os.environ.get("DJANGO_UPLOADS_DIRECTORY", 'uploads/')

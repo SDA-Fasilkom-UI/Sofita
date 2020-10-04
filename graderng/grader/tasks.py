@@ -1,5 +1,8 @@
+import logging
 import random
 import traceback
+
+from datetime import datetime
 
 from celery import group, shared_task
 from celery.result import allow_join_result
@@ -29,6 +32,8 @@ from grader.utils import (
     verdict_to_text,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def save_sub(sub, status, verdict, grade):
     sub.status = status
@@ -50,6 +55,8 @@ def grade_submission(submission_id, assignment_id, course_id, activity_id, user_
     sub.status = Submission.GRADING
     sub.save()
 
+    validate_st = datetime.now()
+
     cases_path, num_tc = JavaRunner.validate_and_get_cases_path(
         sub.problem_name)
     if cases_path is None:
@@ -61,6 +68,11 @@ def grade_submission(submission_id, assignment_id, course_id, activity_id, user_
             DIRECTORY_NOT_FOUND_OR_INVALID_ERROR, 0
         )
         return "FAIL (DIRECTORY_NOT_FOUND_OR_INVALID)"
+
+    validate_fn = datetime.now()
+    log_time(validate_st, validate_fn, submission_id, "validate")
+
+    compile_st = datetime.now()
 
     compile_code, error, exec_name, exec_content = JavaRunner.compile(
         sub.content,
@@ -78,6 +90,9 @@ def grade_submission(submission_id, assignment_id, course_id, activity_id, user_
             feedback, 0
         )
         return "OK (COMPILE_ERROR)"
+
+    compile_fn = datetime.now()
+    log_time(compile_st, compile_fn, submission_id, "compile")
 
     tc_verdict = {}
 
@@ -188,7 +203,9 @@ def grade_testcase(exec_content, exec_name, time_limit, memory_limit, problem_na
     input_text = decompress_gzip_file(in_gzip)
     output_text = decompress_gzip_file(out_gzip)
 
-    return JavaRunner.run(
+    runtc_st = datetime.now()
+
+    result = JavaRunner.run(
         exec_content,
         exec_name,
         time_limit,
@@ -196,6 +213,11 @@ def grade_testcase(exec_content, exec_name, time_limit, memory_limit, problem_na
         input_text,
         output_text
     )
+
+    runtc_fn = datetime.now()
+    log_time(runtc_st, runtc_fn, "{}-{}".format(problem_name, tc), "runtc")
+
+    return result
 
 
 @shared_task(priority=K_REDIS_HIGH_PRIORITY)
@@ -262,3 +284,8 @@ def send_feedback(self, assignment_id, course_id, activity_id, user_id, attempt_
         self.retry(exc=exc, countdown=rand ** self.request.retries)
 
     return (p.status_code, p.text, q.status_code, q.text)
+
+
+def log_time(start_time, end_time, id_, type_):
+    diff_tm = (end_time-start_time).total_seconds()
+    logger.info("[{}][{}] {}s".format(id_, type_, diff_tm))
