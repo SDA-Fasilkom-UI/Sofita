@@ -12,7 +12,7 @@ DB_PASSWORD = os.environ.get('MONGO_PASSWORD')
 def main():
     client = pymongo.MongoClient(
         host=DB_HOST,
-        port=DB_PORT,
+        port=int(DB_PORT),
         username=DB_USERNAME,
         password=DB_PASSWORD,
     )
@@ -27,6 +27,7 @@ def k01_grader_job_index(db):
     """
     Add index to grader and job
     """
+    print("[INIT_MONGO] k01_grader_job_index...")
     col_subs = db.grader_submission
     col_subs.create_index([("time_modified", -1), ("_id", -1)])
 

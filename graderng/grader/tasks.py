@@ -1,4 +1,3 @@
-import logging
 import random
 import traceback
 
@@ -11,6 +10,7 @@ from django.db.models import Max
 
 from app.constants import K_REDIS_HIGH_PRIORITY
 from app.proxy_requests import ProxyRequests
+from celery.utils.log import get_task_logger
 from grader.constants import (
     COMPILATION_ERROR,
     DIRECTORY_NOT_FOUND_OR_INVALID_ERROR,
@@ -32,7 +32,7 @@ from grader.utils import (
     verdict_to_text,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
 
 
 def save_sub(sub, status, verdict, grade):
