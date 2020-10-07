@@ -252,6 +252,6 @@ MOSS_USER_ID = os.environ.get("MOSS_USER_ID")
 
 DISK_CACHE_ENABLE = os.environ.get("DISK_CACHE_ENABLE", False)
 
-FILESIZE_LIMIT = os.environ.get("FILESIZE_LIMIT", 20)  # MB
+FILESIZE_LIMIT = os.environ.get("FILESIZE_LIMIT", 30)  # MB
 
 REDIS_CACHE_EXPIRE_TIME = os.environ.get("REDIS_CACHE_EXPIRE_TIME", 7)  # days
