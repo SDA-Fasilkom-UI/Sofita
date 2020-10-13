@@ -126,7 +126,7 @@ class Sandbox():
 
     def _diff_ignore_whitespace(self, file1, file2):
         diff_command = ["/bin/bash", "-c",
-                        "diff -qZ {} {}".format(file1, file2)]
+                        "diff -qbB {} {}".format(file1, file2)]
         cmd = self._build_command(diff_command)
 
         p = subprocess.run(cmd, stdout=subprocess.PIPE,
