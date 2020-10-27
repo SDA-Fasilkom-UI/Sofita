@@ -31,7 +31,7 @@ def check_plagiarism(moss_job_id):
     downloader = MossDownloader()
 
     assignment_ids = []
-    for assignment_id in moss_job.assignment_id.split(' '):
+    for assignment_id in moss_job.assignment_id.split(','):
         assignment_ids.append(int(assignment_id.strip(' ')))
 
     submissions = Submission.objects.filter(
