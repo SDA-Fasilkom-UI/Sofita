@@ -30,8 +30,12 @@ def check_plagiarism(moss_job_id):
     uploader = MossUploader(settings.MOSS_USER_ID, "java")
     downloader = MossDownloader()
 
+    assignment_ids = []
+    for assignment_id in moss_job.assignment_id.split(' '):
+        assignment_ids.append(int(assignment_id.strip(' ')))
+
     submissions = Submission.objects.filter(
-        assignment_id=moss_job.assignment_id)
+        assignment_id__in=assignment_ids)
 
     if not submissions:
         moss_job.log = "Assignment ID is invalid"

@@ -17,8 +17,7 @@ class MossJob(BaseModel):
         (FAILED, 'Failed'),
         (DONE, 'Done'),
     ]
-
-    assignment_id = models.IntegerField()
+    assignment_id = models.CharField(max_length=128)
     time_created = models.DateTimeField()
     template = models.TextField(blank=True)
     log = models.TextField()
@@ -40,7 +39,9 @@ class MossJob(BaseModel):
 
         localtime = timezone.localtime(self.time_created)
         return str(self.assignment_id) + " - " + localtime.strftime("%d-%m-%Y %H:%M:%S")
-
+    
+    def save(self, *args, **kwargs):
+        super(MossJob, self).save(*args, **kwargs)
 
 class ReportJob(BaseModel):
     PENDING = "P"
