@@ -39,9 +39,6 @@ class MossJob(BaseModel):
 
         localtime = timezone.localtime(self.time_created)
         return str(self.assignment_id) + " - " + localtime.strftime("%d-%m-%Y %H:%M:%S")
-    
-    def save(self, *args, **kwargs):
-        super(MossJob, self).save(*args, **kwargs)
 
 class ReportJob(BaseModel):
     PENDING = "P"
