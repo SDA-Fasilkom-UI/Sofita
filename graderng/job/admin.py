@@ -37,6 +37,12 @@ class MossJobAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         if not change:
             tasks.check_plagiarism.delay(obj.id_)
+    
+    # masih ada assignment_id untuk legacy arsip. Namun yang ditampilkan assignment_id_list
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        fields.remove('assignment_id')
+        return fields
 
 
 class ReportJobAdminActions():

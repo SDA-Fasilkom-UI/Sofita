@@ -30,9 +30,7 @@ def check_plagiarism(moss_job_id):
     uploader = MossUploader(settings.MOSS_USER_ID, "java")
     downloader = MossDownloader()
 
-    assignment_ids = []
-    for assignment_id in moss_job.assignment_id.split(','):
-        assignment_ids.append(int(assignment_id.strip(' ')))
+    assignment_ids = [int(id.strip(' ')) for id in moss_job.assignment_id_list.split(',')]
 
     submissions = Submission.objects.filter(
         assignment_id__in=assignment_ids)
@@ -64,7 +62,6 @@ def check_plagiarism(moss_job_id):
         else:
             display_name = "{}_{}".format(
                 sub.id_number, sub.filename)
-
         uploader.add_file_from_string(sub.content, display_name)
 
     try:
