@@ -54,7 +54,7 @@ class SubmissionAdminAction():
                 filepath = os.path.join(
                     str(sub.assignment_id),
                     sub.id_number,
-                    str(sub.attempt_number),
+                    str(sub.attempt_number) + "-" + str(sub.grade),
                     sub.filename)
                 zip_file.writestr(filepath, sub.content)
         
