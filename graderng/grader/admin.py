@@ -1,6 +1,11 @@
 from django import forms
 from django.contrib import admin, messages
 from django.shortcuts import render
+from django.utils import timezone
+from django.http import HttpResponse
+import io
+import os
+import zipfile
 
 from app.constants import K_REDIS_LOW_PRIORITY
 from grader import tasks
@@ -40,6 +45,23 @@ class SubmissionAdminAction():
 
         modeladmin.message_user(
             request, "Selected submission will be regraded.")
+    
+    @staticmethod
+    def download_submissions(modeladmin, request, queryset):
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+            for sub in queryset.all():
+                filepath = os.path.join(
+                    str(sub.assignment_id),
+                    sub.id_number,
+                    str(sub.attempt_number),
+                    sub.filename)
+                zip_file.writestr(filepath, sub.content)
+        
+        response = HttpResponse(zip_buffer.getvalue(), content_type="application/zip")
+        filename = "submissions-" + str(timezone.now().timestamp()) + ".zip"
+        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+        return response
 
 
 class TimeMemoryLimitAction():
@@ -155,7 +177,8 @@ class SubmissionAdmin(admin.ModelAdmin):
     list_filter = [AssignmentIDFilter, UserIDFilter, IDNumberFilter]
     actions = [
         SubmissionAdminAction.regrade_submissions,
-        TimeMemoryLimitAction.change_time_and_memory_limit
+        TimeMemoryLimitAction.change_time_and_memory_limit,
+        SubmissionAdminAction.download_submissions
     ]
 
     def has_add_permission(self, request, obj=None):
