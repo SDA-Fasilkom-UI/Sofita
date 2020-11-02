@@ -66,6 +66,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
       MONGO_INITDB_DATABASE: ${MONGO_DBNAME}
+    command:
+      ["--setParameter", "internalQueryExecMaxBlockingSortBytes=1073741824"]
     volumes:
       - ${MONGO_DATA_LOCATION}:/data/db
     restart: always
