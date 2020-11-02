@@ -68,8 +68,12 @@ def check_plagiarism(moss_job_id):
         url = uploader.send()
         zip_file = downloader.download_and_zip_report(url)
 
+        # rejoin assignment id for zip file naming
+        assignment_ids_str = [str(id) for id in assignment_ids]
+        assignment_ids_joined = '-'.join(assignment_ids_str)
+
         filename = "{}_{}.zip".format(
-            moss_job.assignment_id, int(moss_job.time_created.timestamp()))
+            assignment_ids_joined, int(moss_job.time_created.timestamp()))
 
         moss_job.zip_file.save(filename, zip_file, save=False)
         moss_job.log = "Success"
