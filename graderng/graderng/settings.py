@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 
     'corsheaders',
     'django_cleanup.apps.CleanupConfig',
+    'django_extensions',
 
     'app',
     'grader',

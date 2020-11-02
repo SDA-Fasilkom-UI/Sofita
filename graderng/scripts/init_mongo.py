@@ -9,7 +9,8 @@ DB_USERNAME = os.environ.get('MONGO_USERNAME')
 DB_PASSWORD = os.environ.get('MONGO_PASSWORD')
 
 
-def main():
+def run():
+    print("[INIT_MONGO] Initializing mongo...")
     client = pymongo.MongoClient(
         host=DB_HOST,
         port=int(DB_PORT),
@@ -21,6 +22,8 @@ def main():
     k01_grader_job_index(db)
 
     client.close()
+
+    print("[INIT_MONGO] Done...")
 
 
 def k01_grader_job_index(db):
@@ -36,9 +39,3 @@ def k01_grader_job_index(db):
 
     col_moss_job = db.job_mossjob
     col_moss_job.create_index([("time_created", -1), ("_id", -1)])
-
-
-if __name__ == "__main__":
-    print("[INIT_MONGO] Initializing mongo...")
-    main()
-    print("[INIT_MONGO] Done...")

@@ -17,7 +17,8 @@ class MossJob(BaseModel):
         (FAILED, 'Failed'),
         (DONE, 'Done'),
     ]
-    assignment_id = models.IntegerField()
+    assignment_id = models.IntegerField(
+        help_text="Deprecated. Use assignment_id_list instead.")
     assignment_id_list = models.CharField(max_length=128)
     time_created = models.DateTimeField()
     template = models.TextField(blank=True)
@@ -34,22 +35,17 @@ class MossJob(BaseModel):
     class Meta:
         ordering = ["-time_created"]
 
-    # kalau disimpan dalam assignment_id, transfer ke assignment_id_list
     def __str__(self):
-
-        # legacy support saat fieldnya masih assignment_id
-        if self.assignment_id is not None:
-            if type(self.assignment_id) is int:
-                self.assignment_id_list = str(self.assignment_id)
-            else: 
-                self.assignment_id_list = self.assignment_id
-            self.assignment_id = None
+        assignment_ids = self.assignment_id_list
+        if assignment_ids is None or len(assignment_ids) == 0:
+            assignment_ids = str(self.assignment_id)
 
         if self.status != self.DONE:
-            return self.assignment_id_list + " - " + self.get_status_display()
+            return assignment_ids + " - " + self.get_status_display()
 
         localtime = timezone.localtime(self.time_created)
-        return self.assignment_id_list + " - " + localtime.strftime("%d-%m-%Y %H:%M:%S")
+        return assignment_ids + " - " + localtime.strftime("%d-%m-%Y %H:%M:%S")
+
 
 class ReportJob(BaseModel):
     PENDING = "P"
