@@ -27,6 +27,9 @@ RUN if [ ! -z "$HTTP_PROXY" ]; then pip3 --proxy $HTTP_PROXY install --no-build-
 
 COPY . /graderng
 
+RUN mkdir /tmp-grader
+RUN chmod 777 /tmp-grader
+
 ARG UID=1300
 ARG GID=1300
 
