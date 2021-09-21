@@ -10,9 +10,9 @@ Data Structures and Algorithms Grader
    ```
    pip install -r requirements.txt
    ```
-1. Run MongoDB.
+1. Run mysql.
    ```
-   docker run --rm -d -p 27017:27017 --name=test-mongo mongo
+   docker run --rm -d -p 3306:3306 --name=test-mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_DATABASE=test mysql
    ```
 1. Run Redis.
    ```
@@ -36,7 +36,7 @@ Data Structures and Algorithms Grader
 1. Install `docker` and `docker-compose`.
 1. Create **media** directory with random directory name inside it. Don't forget
    to assign `DJANGO_UPLOADS_DIRECTORY` with this name later.
-1. Craate **mongo** data directory.
+1. Create **mysql** data directory.
 1. Create `.env` file.
 
    ```
@@ -47,12 +47,13 @@ Data Structures and Algorithms Grader
 
    HTTP_PROXY=
 
-   MONGO_DATA_LOCATION=/home/user/mongo/gogogogo
-   MONGO_DBNAME=sofita
-   MONGO_USERNAME=mongousername
-   MONGO_PASSWORD=mongopassword
-   MONGO_HOST=mongo
-   MONGO_PORT=27017
+   MYSQL_DATA_LOCATION=/absolute/path/to/mysqldir
+   MYSQL_DBNAME=mysqldbname
+   MYSQL_USERNAME=mysqlusername
+   MYSQL_PASSWORD=mysqlpassword
+   MYSQL_HOST=mysql
+   MYSQL_PORT=3306
+   MYSQL_ROOT_PASSWORD=mysqlrootpassword
 
    REDIS_PASSWORD=redispwd
    REDIS_HOST=redis
@@ -108,7 +109,6 @@ Source [here.](https://judgels.readthedocs.io/en/latest/administrator/gabriel/se
 
 ## Important Notes
 
-1. Use `sqlparse==0.2.4`
 1. `--privileged` is used due to https://github.com/ioi/isolate/issues/35
 1. When creating media directory for docker volume binding, please specify `uid` to 1300 and `gid` to 1300.
    ```

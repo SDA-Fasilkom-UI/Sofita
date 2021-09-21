@@ -1,6 +1,6 @@
 import os
 
-from djongo import models
+from django.db import models
 from django.utils import timezone
 
 from app.models import BaseModel
@@ -17,8 +17,7 @@ class MossJob(BaseModel):
         (FAILED, 'Failed'),
         (DONE, 'Done'),
     ]
-    assignment_id = models.IntegerField(
-        help_text="Deprecated. Use assignment_id_list instead.")
+
     assignment_id_list = models.CharField(max_length=128)
     time_created = models.DateTimeField()
     template = models.TextField(blank=True)
@@ -33,6 +32,9 @@ class MossJob(BaseModel):
     name = models.CharField(max_length=128, blank=True)
 
     class Meta:
+        indexes = [
+            models.Index(fields=['-time_created', 'id']),
+        ]
         ordering = ["-time_created"]
 
     def __str__(self):
@@ -45,6 +47,9 @@ class MossJob(BaseModel):
 
         localtime = timezone.localtime(self.time_created)
         return assignment_ids + " - " + localtime.strftime("%d-%m-%Y %H:%M:%S")
+
+    assignment_id = models.IntegerField(
+        help_text="Deprecated. Use assignment_id_list instead.", null=True)
 
 
 class ReportJob(BaseModel):
@@ -59,6 +64,7 @@ class ReportJob(BaseModel):
         (DONE, 'Done'),
     ]
 
+    id = models.AutoField(primary_key=True)
     assignment_id = models.IntegerField()
     time_created = models.DateTimeField()
     log = models.TextField()
@@ -72,6 +78,9 @@ class ReportJob(BaseModel):
     name = models.CharField(max_length=128, blank=True)
 
     class Meta:
+        indexes = [
+            models.Index(fields=['-time_created', 'id']),
+        ]
         ordering = ["-time_created"]
 
     def __str__(self):

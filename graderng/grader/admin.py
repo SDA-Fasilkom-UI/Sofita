@@ -39,13 +39,13 @@ class SubmissionAdminAction():
         queryset.update(status=Submission.PENDING)
         for sub in queryset.all():
             tasks.grade_submission.apply_async(
-                (sub.id_, sub.assignment_id, sub.course_id,
+                (sub.id, sub.assignment_id, sub.course_id,
                  sub.activity_id, sub.user_id, sub.attempt_number),
                 priority=K_REDIS_LOW_PRIORITY)
 
         modeladmin.message_user(
             request, "Selected submission will be regraded.")
-    
+
     @staticmethod
     def download_submissions(modeladmin, request, queryset):
         zip_buffer = io.BytesIO()
@@ -57,8 +57,9 @@ class SubmissionAdminAction():
                     str(sub.attempt_number) + "-" + str(sub.grade),
                     sub.filename)
                 zip_file.writestr(filepath, sub.content)
-        
-        response = HttpResponse(zip_buffer.getvalue(), content_type="application/zip")
+
+        response = HttpResponse(zip_buffer.getvalue(),
+                                content_type="application/zip")
         filename = "submissions-" + str(timezone.now().timestamp()) + ".zip"
         response['Content-Disposition'] = 'attachment; filename="%s"' % filename
         return response
@@ -170,7 +171,7 @@ class IDNumberFilter(InputFilter):
 
 
 class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ("_id", "id_number", "problem_name", "attempt_number",
+    list_display = ("id", "id_number", "problem_name", "attempt_number",
                     "formatted_time_modified", "assignment_id", "user_id", "grade", "status")
     readonly_fields = ("grade", "verdict", "status", "assignment_id", "course_id", "activity_id", "user_id",
                        "id_number", "attempt_number", "due_date", "cut_off_date", "time_modified")

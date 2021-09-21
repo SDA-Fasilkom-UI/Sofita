@@ -90,16 +90,14 @@ WSGI_APPLICATION = 'graderng.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'ENFORCE_SCHEMA': False,
-        'NAME': os.environ.get('MONGO_DBNAME', 'test-mongo'),
-        'CLIENT': {
-            'host': os.environ.get('MONGO_HOST', 'localhost'),
-            'port': int(os.environ.get('MONGO_PORT', 27017)),
-            'username': os.environ.get('MONGO_USERNAME'),
-            'password': os.environ.get('MONGO_PASSWORD')
-        }
-    }
+        'ENGINE': 'mysql.connector.django',
+        'OPTIONS': {'charset': 'utf8mb4'},
+        'NAME': os.environ.get('MYSQL_DBNAME', 'test'),
+        'USER': os.environ.get('MYSQL_USERNAME', 'root'),
+        'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
+        'HOST': os.environ.get('MYSQL_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('MYSQL_PORT', '3306'),
+    },
 }
 
 

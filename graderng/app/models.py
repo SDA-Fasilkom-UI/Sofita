@@ -1,21 +1,13 @@
 import hashlib
 import secrets
 
-from djongo import models
+from django.db import models
 
 
 class BaseModel(models.Model):
-    _id = models.ObjectIdField()
 
     class Meta:
         abstract = True
-
-    @property
-    def id_(self):
-        """
-        Same as _id, but string.
-        """
-        return str(self._id)
 
 
 def generate_token():
