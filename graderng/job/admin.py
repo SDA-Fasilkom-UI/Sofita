@@ -14,7 +14,7 @@ class MossJobAdminActions():
     def rerun_check(modeladmin, request, queryset):
         queryset.update(status=MossJob.PENDING)
         for moss_job in queryset.all():
-            tasks.check_plagiarism.delay(moss_job.id_)
+            tasks.check_plagiarism.delay(moss_job.id)
 
         modeladmin.message_user(
             request, "Selected moss job will be rerun")
@@ -24,7 +24,7 @@ class MossJobAdmin(admin.ModelAdmin):
 
     list_display = ("__str__", "name", "zip_file")
     readonly_fields = ("zip_file", "log", "status",
-                       "time_created", "_id", "assignment_id")
+                       "time_created", "id")
     list_filter = [AssignmentIDFilter]
     actions = [MossJobAdminActions.rerun_check]
 
@@ -37,7 +37,7 @@ class MossJobAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         if not change:
-            tasks.check_plagiarism.delay(obj.id_)
+            tasks.check_plagiarism.delay(obj.id)
 
 
 class ReportJobAdminActions():
@@ -49,7 +49,7 @@ class ReportJobAdminActions():
     def regenerate_report(modeladmin, request, queryset):
         queryset.update(status=ReportJob.PENDING)
         for report_job in queryset.all():
-            tasks.generate_report.delay(report_job.id_)
+            tasks.generate_report.delay(report_job.id)
 
         modeladmin.message_user(
             request, "Selected report job will be rerun")
@@ -58,7 +58,7 @@ class ReportJobAdminActions():
 class ReportJobAdmin(admin.ModelAdmin):
 
     list_display = ("__str__", "name", "csv_file")
-    readonly_fields = ("csv_file", "log", "status", "time_created", "_id")
+    readonly_fields = ("csv_file", "log", "status", "time_created", "id")
     list_filter = [AssignmentIDFilter]
     actions = [ReportJobAdminActions.regenerate_report]
 
@@ -71,7 +71,7 @@ class ReportJobAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         if not change:
-            tasks.generate_report.delay(obj.id_)
+            tasks.generate_report.delay(obj.id)
 
 
 admin.site.register(MossJob, MossJobAdmin)

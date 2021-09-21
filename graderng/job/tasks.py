@@ -15,7 +15,7 @@ from job.moss import MossDownloader, MossUploader
 
 @shared_task(time_limit=30*60)
 def check_plagiarism(moss_job_id):
-    moss_job = MossJob.objects.filter(_id=moss_job_id).first()
+    moss_job = MossJob.objects.filter(id=moss_job_id).first()
 
     if moss_job is None:
         return "FAIL"
@@ -30,7 +30,8 @@ def check_plagiarism(moss_job_id):
     uploader = MossUploader(settings.MOSS_USER_ID, "java")
     downloader = MossDownloader()
 
-    assignment_ids = [int(id.strip(' ')) for id in moss_job.assignment_id_list.split(',')]
+    assignment_ids = [int(id.strip(' '))
+                      for id in moss_job.assignment_id_list.split(',')]
 
     submissions = Submission.objects.filter(
         assignment_id__in=assignment_ids)
@@ -93,7 +94,7 @@ def check_plagiarism(moss_job_id):
 
 @shared_task(time_limit=30*60)
 def generate_report(report_job_id):
-    report_job = ReportJob.objects.filter(_id=report_job_id).first()
+    report_job = ReportJob.objects.filter(id=report_job_id).first()
 
     if report_job is None:
         return "FAIL"

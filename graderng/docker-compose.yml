@@ -10,7 +10,7 @@ services:
     restart: always
     depends_on:
       - redis
-      - mongo
+      - mysql
     env_file: .env
     ports:
       - 18080:8080
@@ -22,7 +22,7 @@ services:
     restart: always
     depends_on:
       - redis
-      - mongo
+      - mysql
     command: ["worker"]
     env_file: .env
     privileged: true
@@ -36,7 +36,7 @@ services:
     restart: always
     depends_on:
       - redis
-      - mongo
+      - mysql
     command: ["feedbacks_jobs"]
     env_file: .env
     volumes:
@@ -60,14 +60,13 @@ services:
     ports:
       - 16379:6379
 
-  mongo:
-    image: mongo:4.2.1
+  mysql:
+    image: mysql:8.0.26
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DBNAME}
-    command:
-      ["--setParameter", "internalQueryExecMaxBlockingSortBytes=1073741824"]
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USERNAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DBNAME}
     volumes:
-      - ${MONGO_DATA_LOCATION}:/data/db
+      - ${MYSQL_DATA_LOCATION}:/var/lib/mysql
     restart: always
