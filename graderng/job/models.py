@@ -32,7 +32,6 @@ class MossJob(BaseModel):
         indexes = [
             models.Index(fields=['-time_created', 'id']),
         ]
-        ordering = ["-time_created"]
 
     def __str__(self):
         assignment_ids = self.assignment_id_list
@@ -77,7 +76,6 @@ class ReportJob(BaseModel):
         indexes = [
             models.Index(fields=['-time_created', 'id']),
         ]
-        ordering = ["-time_created"]
 
     def __str__(self):
         if self.status != self.DONE:
