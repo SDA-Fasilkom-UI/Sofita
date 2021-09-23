@@ -67,7 +67,7 @@ class MossUploader():
 
     def send(self):
         s = ProxySocket.socket()
-        s.settimeout(30)  # seconds
+        s.settimeout(60)  # seconds
         s.connect((self.server, self.port))
 
         s.send("moss {}\n".format(self.user_id).encode())

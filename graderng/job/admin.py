@@ -40,7 +40,7 @@ class MossJobAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         if not change:
-            tasks.check_plagiarism.delay(obj.id)
+            tasks.check_plagiarism.s(obj.id).apply_async(countdown=1)
 
 
 class ReportJobAdminActions():
@@ -79,7 +79,7 @@ class ReportJobAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         if not change:
-            tasks.generate_report.delay(obj.id)
+            tasks.generate_report.s(obj.id).apply_async(countdown=1)
 
 
 admin.site.register(MossJob, MossJobAdmin)
