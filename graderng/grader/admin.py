@@ -1,11 +1,12 @@
+import io
+import os
+import zipfile
+
 from django import forms
 from django.contrib import admin, messages
 from django.shortcuts import render
 from django.utils import timezone
 from django.http import HttpResponse
-import io
-import os
-import zipfile
 
 from app.constants import K_REDIS_LOW_PRIORITY
 from grader import tasks

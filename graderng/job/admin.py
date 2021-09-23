@@ -23,7 +23,7 @@ class MossJobAdminActions():
 class MossJobAdmin(admin.ModelAdmin):
 
     list_display = ("moss_job", "assignment_id_list",
-                    "name", "time_created", "zip_file")
+                    "name", "time_created", "status", "zip_file")
     readonly_fields = ("zip_file", "log", "status",
                        "time_created", "id", "assignment_id")
     actions = [MossJobAdminActions.rerun_check]
@@ -63,7 +63,7 @@ class ReportJobAdminActions():
 class ReportJobAdmin(admin.ModelAdmin):
 
     list_display = ("report_job", "assignment_id",
-                    "name", "time_created", "csv_file")
+                    "name", "time_created", "status", "csv_file")
     readonly_fields = ("csv_file", "log", "status",
                        "time_created", "id", "assignment_id")
     actions = [ReportJobAdminActions.regenerate_report]
