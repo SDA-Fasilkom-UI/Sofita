@@ -4,7 +4,6 @@ from celery import chord, shared_task
 from django.conf import settings
 from django.db.models import Max
 
-from app.constants import K_REDIS_HIGH_PRIORITY
 from app.proxy_requests import ProxyRequests
 from grader.constants import (
     ACCEPTED,
@@ -205,7 +204,7 @@ def forward_fail_handler(req, exc, tb, sub_identifier):
     grade_fail_handler.delay(req, exc, tb, sub_identifier)
 
 
-@shared_task(priority=K_REDIS_HIGH_PRIORITY)
+@shared_task(acks_late=True)
 def skip(assignment_id, course_id, activity_id, user_id, attempt_number):
     send_feedback.delay(
         assignment_id, course_id, activity_id, user_id, attempt_number,
@@ -214,7 +213,7 @@ def skip(assignment_id, course_id, activity_id, user_id, attempt_number):
     return "OK"
 
 
-@shared_task(bind=True, acks_late=True, max_retries=10)
+@shared_task(bind=True, acks_late=True, max_retries=5)
 def send_feedback(self, assignment_id, course_id, activity_id,
                   user_id, attempt_number, feedback, grade):
 

@@ -3,6 +3,7 @@ import io
 import datetime
 import traceback
 
+from app.constants import K_REDIS_LOW_PRIORITY
 from celery import shared_task
 from django.db.models import Max
 from django.conf import settings
@@ -13,7 +14,7 @@ from job.models import MossJob, ReportJob
 from job.moss import MossDownloader, MossUploader
 
 
-@shared_task(time_limit=30*60)
+@shared_task(time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
 def check_plagiarism(moss_job_id):
     moss_job = MossJob.objects.filter(id=moss_job_id).first()
 
@@ -92,7 +93,7 @@ def check_plagiarism(moss_job_id):
         return ("FAIL", tb)
 
 
-@shared_task(time_limit=30*60)
+@shared_task(time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
 def generate_report(report_job_id):
     report_job = ReportJob.objects.filter(id=report_job_id).first()
 

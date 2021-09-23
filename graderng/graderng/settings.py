@@ -203,16 +203,17 @@ REDIS_EXPIRE_TIME = os.environ.get("REDIS_EXPIRE_TIME", 7)  # days
 
 # Celery
 
-CELERY_BROKER_URL = "redis://:{}@{}:{}/0".format(
+CELERY_BROKER_URL = CELERY_RESULT_BACKEND = "redis://:{}@{}:{}/0".format(
     REDIS_PASSWORD or "", REDIS_HOST, REDIS_PORT)
 
-CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
-    'priority_steps': list(range(10)),
+    'priority_steps': list(range(10)),  # 0 - 9
     'queue_order_strategy': 'priority',
     'visibility_timeout': 10*60,  # 10 mins
 }
+
+CELERY_TASK_DEFAULT_PRIORITY = 5
 
 CELERY_TASK_ROUTES = {
     "grader.tasks.grade_testcase": {"queue": "testcases"},
