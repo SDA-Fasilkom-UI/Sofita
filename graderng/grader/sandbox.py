@@ -7,13 +7,21 @@ from django.conf import settings
 from memory_tempfile import MemoryTempfile
 
 from app import redis_connection_pool
+from grader.constants import (
+    ACCEPTED,
+    DIED_ON_SIGNAL,
+    RUNTIME_ERROR,
+    TIME_LIMIT_EXCEEDED,
+    UNKNOWN_ERROR,
+    WRONG_ANSWER,
+)
 
 redis_conn = redis.Redis(connection_pool=redis_connection_pool)
 
 
 class Sandbox():
 
-    FILESIZE_LIMIT = settings.FILESIZE_LIMIT
+    FILESIZE_LIMIT = settings.SANDBOX_FILESIZE_LIMIT
     FILESIZE_SOFT_LIMIT = FILESIZE_LIMIT - 1
 
     def __init__(self):
@@ -51,7 +59,7 @@ class Sandbox():
 
         if time_limit is not None:
             base.append("--time={}".format(time_limit))
-            base.append("--wall-time={}".format(time_limit + 8))
+            base.append("--wall-time={}".format(time_limit + 4))
             base.append("--extra-time=0.5")
 
         if memory_limit is not None:
@@ -122,6 +130,7 @@ class Sandbox():
                         result[key.strip()] = val.strip()
 
         result["time"] = float(result.get("time", -1))
+        result["time-wall"] = float(result.get("time-wall", -1))
         return result
 
     def _diff_ignore_whitespace(self, file1, file2):
@@ -163,20 +172,26 @@ class Sandbox():
                        input_path, sub_output)
 
         result = self._parse_meta()
+        time_passed = max(result["time"], result["time-wall"])
 
         # some lang do not throw exception when stdout larger than
         # filesize limit, the workaround is to check it manually
         soft_limit = self.FILESIZE_SOFT_LIMIT * 1024 * 1024
         sub_output_size = os.path.getsize(sub_output)
         if sub_output_size >= soft_limit:
-            return "SG", result["time"]
+            return DIED_ON_SIGNAL, time_passed
 
         if ok:
             is_same = self._diff_ignore_whitespace(output_path, sub_output)
-            return ("AC" if is_same else "WA", result["time"])
+            return (ACCEPTED if is_same else WRONG_ANSWER, time_passed)
         else:
-            status = {"RE": "RTE", "TO": "TLE", "SG": "SG", "XX": "XX"}
-            return (status[result["status"]], result["time"])
+            status = {
+                "RE": RUNTIME_ERROR,
+                "TO": TIME_LIMIT_EXCEEDED,
+                "SG": DIED_ON_SIGNAL,
+                "XX": UNKNOWN_ERROR,
+            }
+            return (status[result["status"]], time_passed)
 
     def _compile(self, filename):
         raise SandboxException("Function `_compile` is not implemented")

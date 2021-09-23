@@ -1,5 +1,3 @@
-import os
-
 from django.db import models
 from django.utils import timezone
 
@@ -28,7 +26,6 @@ class MossJob(BaseModel):
         choices=STATUS_CHOICES,
         default=PENDING
     )
-
     name = models.CharField(max_length=128, blank=True)
 
     class Meta:
@@ -74,7 +71,6 @@ class ReportJob(BaseModel):
         choices=STATUS_CHOICES,
         default=PENDING
     )
-
     name = models.CharField(max_length=128, blank=True)
 
     class Meta:

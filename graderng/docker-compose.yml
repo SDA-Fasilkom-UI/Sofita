@@ -31,17 +31,6 @@ services:
     volumes:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 
-  feedbacks_jobs:
-    image: grader-base
-    restart: always
-    depends_on:
-      - redis
-      - mysql
-    command: ["feedbacks_jobs"]
-    env_file: .env
-    volumes:
-      - ${DJANGO_MEDIA_LOCATION}:/graderng/media
-
   testcases:
     image: grader-base
     restart: always

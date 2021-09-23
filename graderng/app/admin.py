@@ -6,7 +6,6 @@ from app.models import Token
 
 
 class UserAdminAction():
-    
     @staticmethod
     def activate_users(modeladmin, request, queryset):
         queryset.update(is_active=True)

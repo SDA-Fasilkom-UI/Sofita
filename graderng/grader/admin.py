@@ -171,8 +171,8 @@ class IDNumberFilter(InputFilter):
 
 
 class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ("id", "id_number", "problem_name", "attempt_number",
-                    "formatted_time_modified", "assignment_id", "user_id", "grade", "status")
+    list_display = ("submission_id", "id_number", "problem_name", "attempt_number",
+                    "time_submitted", "assignment_id", "user_id", "grade", "status")
     readonly_fields = ("grade", "verdict", "status", "assignment_id", "course_id", "activity_id", "user_id",
                        "id_number", "attempt_number", "due_date", "cut_off_date", "time_modified")
     list_filter = [AssignmentIDFilter, UserIDFilter, IDNumberFilter]
@@ -181,6 +181,16 @@ class SubmissionAdmin(admin.ModelAdmin):
         TimeMemoryLimitAction.change_time_and_memory_limit,
         SubmissionAdminAction.download_submissions
     ]
+
+    def submission_id(self, obj):
+        return "Submission ({})".format(obj.id)
+
+    submission_id.admin_order_field = "id"
+
+    def time_submitted(self, obj):
+        return obj.formatted_time_modified
+
+    time_submitted.admin_order_field = "time_modified"
 
     def has_add_permission(self, request, obj=None):
         return False
