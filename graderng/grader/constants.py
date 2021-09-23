@@ -1,4 +1,4 @@
-# feedback related const
+# feedback related
 DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT = "Directory not found or invalid"
 DIRECTORY_NOT_FOUND_OR_INVALID_ERROR = \
     """
@@ -84,6 +84,3 @@ RUNTIME_ERROR = "RTE"
 TIME_LIMIT_EXCEEDED = "TLE"
 DIED_ON_SIGNAL = "SG"
 UNKNOWN_ERROR = "XX"
-
-# redis related prefix
-TESTCASE_PREFIX = "testcase_"

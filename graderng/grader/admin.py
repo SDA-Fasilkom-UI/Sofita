@@ -140,7 +140,8 @@ class AssignmentIDFilter(InputFilter):
                 return queryset.filter(assignment_id=_id)
         except ValueError:
             self.model_admin.message_user(
-                request, 'Search value should only be number/integer.', messages.WARNING)
+                request, 'Search value should only be number/integer.',
+                messages.WARNING)
 
 
 class UserIDFilter(InputFilter):
@@ -154,7 +155,8 @@ class UserIDFilter(InputFilter):
                 return queryset.filter(user_id=_id)
         except ValueError:
             self.model_admin.message_user(
-                request, 'Search value should only be number/integer.', messages.WARNING)
+                request, 'Search value should only be number/integer.',
+                messages.WARNING)
 
 
 class IDNumberFilter(InputFilter):
@@ -168,14 +170,18 @@ class IDNumberFilter(InputFilter):
                 return queryset.filter(id_number=_id)
         except ValueError:
             self.model_admin.message_user(
-                request, 'Search value should only be number/integer.', messages.WARNING)
+                request, 'Search value should only be number/integer.',
+                messages.WARNING)
 
 
 class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ("submission_id", "id_number", "problem_name", "attempt_number",
-                    "time_submitted", "assignment_id", "user_id", "grade", "status")
-    readonly_fields = ("grade", "verdict", "status", "assignment_id", "course_id", "activity_id", "user_id",
-                       "id_number", "attempt_number", "due_date", "cut_off_date", "time_modified")
+    list_display = ("submission_id", "id_number", "problem_name",
+                    "attempt_number", "time_submitted", "assignment_id",
+                    "user_id", "grade", "status")
+    readonly_fields = ("grade", "verdict", "status", "assignment_id",
+                       "course_id", "activity_id", "user_id", "id_number",
+                       "attempt_number", "due_date", "cut_off_date",
+                       "time_modified")
     list_filter = [AssignmentIDFilter, UserIDFilter, IDNumberFilter]
     actions = [
         SubmissionAdminAction.regrade_submissions,
@@ -185,12 +191,10 @@ class SubmissionAdmin(admin.ModelAdmin):
 
     def submission_id(self, obj):
         return "Submission ({})".format(obj.id)
-
     submission_id.admin_order_field = "id"
 
     def time_submitted(self, obj):
         return obj.formatted_time_modified
-
     time_submitted.admin_order_field = "time_modified"
 
     def has_add_permission(self, request, obj=None):

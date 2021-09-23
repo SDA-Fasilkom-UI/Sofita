@@ -31,16 +31,27 @@ services:
     volumes:
       - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 
-  testcases:
+  testcase:
     image: grader-base
     restart: always
     depends_on:
       - redis
-    command: ["testcases"]
+    command: ["testcase"]
     env_file: .env
     privileged: true
     tmpfs:
       - /tmp-grader
+
+  misc:
+    image: grader-base
+    restart: always
+    depends_on:
+      - redis
+      - mysql
+    command: ["misc"]
+    env_file: .env
+    volumes:
+      - ${DJANGO_MEDIA_LOCATION}:/graderng/media
 
   redis:
     image: redis:5.0.6
