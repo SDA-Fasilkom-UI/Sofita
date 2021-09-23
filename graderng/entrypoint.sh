@@ -1,9 +1,9 @@
 #!/bin/bash
 
 if [ "$1" == "worker" ]; then
-    celery -A graderng worker -l info --concurrency=$WORKER_CONCURRENCY -O fair --pool gevent
+    celery -A graderng worker -l info --concurrency=$WORKER_CONCURRENCY --pool gevent --prefetch-multiplier 1
 elif [ "$1" == "testcases" ]; then
-    celery -A graderng worker -l info -Q testcases --concurrency=$TESTCASES_CONCURRENCY -O fair
+    celery -A graderng worker -l info -Q testcases --concurrency=$TESTCASES_CONCURRENCY -O fair --prefetch-multiplier 1
 else
     python3 manage.py collectstatic --noinput
     python3 manage.py migrate
