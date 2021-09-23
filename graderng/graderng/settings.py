@@ -187,7 +187,7 @@ FILEBROWSER_EXTENSIONS = {
     'Testcase': ['.in', '.out', '.zip']
 }
 
-FILEBROWSER_MAX_UPLOAD_SIZE = 100 * 1024 * 1024
+FILEBROWSER_MAX_UPLOAD_SIZE = 100 * 1024 * 1024  # 100MB
 
 
 # Redis
@@ -198,14 +198,15 @@ REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
 
 REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
 
+REDIS_EXPIRE_TIME = os.environ.get("REDIS_EXPIRE_TIME", 7)  # days
+
 
 # Celery
 
 CELERY_BROKER_URL = "redis://:{}@{}:{}/0".format(
     REDIS_PASSWORD or "", REDIS_HOST, REDIS_PORT)
 
-CELERY_RESULT_BACKEND = "redis://:{}@{}:{}/0".format(
-    REDIS_PASSWORD or "", REDIS_HOST, REDIS_PORT)
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'priority_steps': list(range(10)),
@@ -214,9 +215,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 
 CELERY_TASK_ROUTES = {
-    "grader.tasks.send_feedback": {"queue": "feedbacks_jobs"},
     "grader.tasks.grade_testcase": {"queue": "testcases"},
-    "job.tasks.*": {"queue": "feedbacks_jobs"}
 }
 
 CELERY_ACCEPT_CONTENT = ["pickle"]
@@ -247,10 +246,6 @@ HTTP_PROXY = os.environ.get("HTTP_PROXY")
 MOSS_USER_ID = os.environ.get("MOSS_USER_ID")
 
 
-# MISC
+# Sandbox
 
-DISK_CACHE_ENABLE = os.environ.get("DISK_CACHE_ENABLE", False)
-
-FILESIZE_LIMIT = os.environ.get("FILESIZE_LIMIT", 30)  # MB
-
-REDIS_CACHE_EXPIRE_TIME = os.environ.get("REDIS_CACHE_EXPIRE_TIME", 7)  # days
+SANDBOX_FILESIZE_LIMIT = os.environ.get("SANDBOX_FILESIZE_LIMIT", 30)  # MB

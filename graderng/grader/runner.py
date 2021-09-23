@@ -1,39 +1,8 @@
-import os
-
-
 from grader.sandbox import JavaSandbox
-from grader.utils import get_problems_path
 
 
 class Runner():
     Sandbox = None
-
-    @staticmethod
-    def validate_and_get_cases_path(problem_name):
-        problems_path = get_problems_path()
-        cases_path = os.path.join(
-            problems_path, problem_name, "cases")
-
-        if not os.path.isdir(cases_path):
-            return None, None
-
-        files = os.listdir(cases_path)
-        num_files = len(files)
-        num_tc = num_files - num_files // 2  # handle odd num_files
-
-        valid = True
-        for i in range(1, num_tc + 1):
-            in_filename = "{}.in".format(i)
-            out_filename = "{}.out".format(i)
-
-            if (in_filename not in files) or (out_filename not in files):
-                valid = False
-                break
-
-        if not valid:
-            return None, None
-
-        return cases_path, num_tc
 
     @classmethod
     def compile(cls, content, filename):

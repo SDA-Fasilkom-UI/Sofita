@@ -8,6 +8,8 @@ from django.http import HttpResponse
 from filebrowser.sites import site
 from filebrowser.utils import convert_filename
 
+from grader.utils import get_in_out_name, get_problems_path
+
 
 def register_actions():
     """
@@ -18,7 +20,7 @@ def register_actions():
     site.add_action(zip_and_download_folder)
 
 
-def zip_and_download_folder(request, fileobjects):
+def zip_and_download_folder(_, fileobjects):
     fileobject = fileobjects[0]
     zipname = fileobject.filename + ".zip"
 
@@ -78,26 +80,27 @@ def validate_and_extract_zip(request, fileobjects):
             show_error(request, "File must contains one directory")
             return
 
-        problem_path = list(dirs["/"])[0]
-        cases_path = os.path.join(problem_path, "cases/")
+        zip_problem_path = list(dirs["/"])[0]
+        zip_cases_path = os.path.join(zip_problem_path, "cases/")
 
-        if cases_path not in dirs[problem_path]:
+        if zip_cases_path not in dirs[zip_problem_path]:
             show_error(request, "'cases/' folder not found")
             return
 
-        dir_len = len(dirs[cases_path])
+        dir_len = len(dirs[zip_cases_path])
         tc_len = dir_len - dir_len // 2
 
         valid = True
         for i in range(1, tc_len + 1):
-            input_ = os.path.join(cases_path, str(i) + ".in")
-            output_ = os.path.join(cases_path, str(i) + ".out")
+            in_name, out_name = get_in_out_name(i)
+            input_ = os.path.join(zip_cases_path, in_name)
+            output_ = os.path.join(zip_cases_path, out_name)
 
-            if input_ not in dirs[cases_path]:
+            if input_ not in dirs[zip_cases_path]:
                 show_error(request, input_ + " not found")
                 valid = False
 
-            if output_ not in dirs[cases_path]:
+            if output_ not in dirs[zip_cases_path]:
                 show_error(request, output_ + " not found")
                 valid = False
 
@@ -105,13 +108,10 @@ def validate_and_extract_zip(request, fileobjects):
             show_error(request, "No additional file allowed in 'cases'")
             return
 
-        location = site.storage.location
-        directory = site.directory
-        path = os.path.join(location, directory)
-
+        problems_path = get_problems_path()
         for info in info_list:
             name = convert_filename(info.filename)
-            filepath = os.path.join(path, name)
+            filepath = os.path.join(problems_path, name)
 
             if info.is_dir():
                 if os.path.isdir(filepath):

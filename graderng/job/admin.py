@@ -22,11 +22,16 @@ class MossJobAdminActions():
 
 class MossJobAdmin(admin.ModelAdmin):
 
-    list_display = ("__str__", "name", "zip_file")
+    list_display = ("moss_job", "assignment_id_list",
+                    "name", "time_created", "zip_file")
     readonly_fields = ("zip_file", "log", "status",
-                       "time_created", "id")
-    list_filter = [AssignmentIDFilter]
+                       "time_created", "id", "assignment_id")
     actions = [MossJobAdminActions.rerun_check]
+
+    def moss_job(self, obj):
+        return "Moss Job ({})".format(obj.id)
+
+    moss_job.admin_order_field = "id"
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -57,10 +62,16 @@ class ReportJobAdminActions():
 
 class ReportJobAdmin(admin.ModelAdmin):
 
-    list_display = ("__str__", "name", "csv_file")
-    readonly_fields = ("csv_file", "log", "status", "time_created", "id")
-    list_filter = [AssignmentIDFilter]
+    list_display = ("report_job", "assignment_id",
+                    "name", "time_created", "csv_file")
+    readonly_fields = ("csv_file", "log", "status",
+                       "time_created", "id", "assignment_id")
     actions = [ReportJobAdminActions.regenerate_report]
+
+    def report_job(self, obj):
+        return "Report Job ({})".format(obj.id)
+
+    report_job.admin_order_field = "id"
 
     def get_actions(self, request):
         actions = super().get_actions(request)

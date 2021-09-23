@@ -1,4 +1,5 @@
-DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT = "Directory not found"
+# feedback related const
+DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT = "Directory not found or invalid"
 DIRECTORY_NOT_FOUND_OR_INVALID_ERROR = \
     """
     <p><b> Error | Attempt Grade: 0 </b></p>
@@ -75,3 +76,14 @@ SUBMISSION_NOT_FOUND = \
     <p><b> Error | Attempt Grade: 0 </b></p>
     <p> Submission is not found on grader, contact assistant </p>
     """
+
+# sandbox result map
+ACCEPTED = "AC"
+WRONG_ANSWER = "WA"
+RUNTIME_ERROR = "RTE"
+TIME_LIMIT_EXCEEDED = "TLE"
+DIED_ON_SIGNAL = "SG"
+UNKNOWN_ERROR = "XX"
+
+# redis related prefix
+TESTCASE_PREFIX = "testcase_"

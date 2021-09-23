@@ -1,14 +1,13 @@
 import random
-import traceback
 
-from celery import group, shared_task
-from celery.result import allow_join_result
+from celery import chord, shared_task
 from django.conf import settings
 from django.db.models import Max
 
 from app.constants import K_REDIS_HIGH_PRIORITY
 from app.proxy_requests import ProxyRequests
 from grader.constants import (
+    ACCEPTED,
     COMPILATION_ERROR,
     DIRECTORY_NOT_FOUND_OR_INVALID_ERROR,
     DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT,
@@ -17,15 +16,17 @@ from grader.constants import (
     SUBMISSION_NOT_FOUND,
     VERDICT_FEEDBACK,
 )
-from grader import cache
+from grader.cache import TestcaseCache
 from grader.models import Submission
 from grader.runner import JavaRunner
 from grader.utils import (
-    InputOutputNotFoundException,
     compress_gzip_file,
     decompress_gzip_file,
+    get_num_tc,
+    get_tc_mtime,
     get_tc_path,
     render_html,
+    validate_cases_path,
     verdict_to_text,
 )
 
@@ -37,8 +38,15 @@ def save_sub(sub, status, verdict, grade):
     sub.save()
 
 
+def save_sub_with_id(sub_id, status, verdict, grade):
+    Submission.objects.filter(id=sub_id).update(
+        status=status, verdict=verdict, grade=grade)
+
+
 @shared_task(acks_late=True)
 def grade_submission(submission_id, assignment_id, course_id, activity_id, user_id, attempt_number):
+
+    # check if submission exists
     sub = Submission.objects.filter(id=submission_id).first()
     if sub is None:
         send_feedback.delay(
@@ -47,12 +55,12 @@ def grade_submission(submission_id, assignment_id, course_id, activity_id, user_
         )
         return "FAIL (SUBMISSION_NOT_FOUND)"
 
-    sub.status = Submission.GRADING
+    sub.status = Submission.COMPILING
     sub.save()
 
-    cases_path, num_tc = JavaRunner.validate_and_get_cases_path(
-        sub.problem_name)
-    if cases_path is None:
+    # validate cases directory
+    is_valid = validate_cases_path(sub.problem_name)
+    if not is_valid:
         save_sub(sub, Submission.DONE,
                  DIRECTORY_NOT_FOUND_OR_INVALID_ERROR_TEXT, 0)
 
@@ -62,6 +70,9 @@ def grade_submission(submission_id, assignment_id, course_id, activity_id, user_
         )
         return "FAIL (DIRECTORY_NOT_FOUND_OR_INVALID)"
 
+    num_tc = get_num_tc(sub.problem_name)
+
+    # compile
     compile_code, error, exec_name, exec_content = JavaRunner.compile(
         sub.content,
         sub.filename
@@ -79,123 +90,119 @@ def grade_submission(submission_id, assignment_id, course_id, activity_id, user_
         )
         return "OK (COMPILE_ERROR)"
 
-    tc_verdict = {}
+    # grade each testcase
+    tasks = []
+    for i in range(1, num_tc+1):
+        cache_mtime = TestcaseCache.get_mtime(sub.problem_name, i)
+        actual_mtime = get_tc_mtime(sub.problem_name, i)
 
-    curr_tc = list(range(num_tc))
-    failed_tc = []
-    retry_cnt = {}
-    while(len(curr_tc) > 0):
-        tasks = []
-        for tc in curr_tc:
-            cache_manager = cache.RedisCacheManager(
-                sub.problem_name, tc, cases_path)
+        if actual_mtime > cache_mtime:
+            in_path, out_path = get_tc_path(sub.problem_name, i)
+            in_gzip = compress_gzip_file(in_path)
+            out_gzip = compress_gzip_file(out_path)
 
-            if not cache_manager.exists():
-                in_path, out_path = get_tc_path(cases_path, tc)
-                in_gzip = compress_gzip_file(in_path)
-                out_gzip = compress_gzip_file(out_path)
+            TestcaseCache.insert(sub.problem_name, i,
+                                 in_gzip, out_gzip, actual_mtime)
+        else:
+            in_gzip, out_gzip = TestcaseCache.get_content(
+                sub.problem_name, i)
 
-                cache_manager.insert(in_gzip, out_gzip)
+        tasks.append(grade_testcase.signature((
+            exec_content, exec_name, sub.time_limit, sub.memory_limit,
+            in_gzip, out_gzip, i,
+        )))
 
-            tasks.append(grade_testcase.signature((
-                exec_content, exec_name, sub.time_limit, sub.memory_limit,
-                sub.problem_name, tc
-            )))
+    sub_identifier = {
+        "submission_id": submission_id,
+        "assignment_id": assignment_id,
+        "course_id": course_id,
+        "activity_id": activity_id,
+        "user_id": user_id,
+        "attempt_number": attempt_number,
+    }
+    c = chord(tasks, grade_success_handler.s(sub_identifier).on_error(
+        forward_fail_handler.s(sub_identifier)))
+    c.apply_async()
 
-        tasks_group = group(tasks)
-        tasks_result = tasks_group.apply_async()
+    sub.status = Submission.GRADING
+    sub.save()
+    return "OK"
 
-        # allow waiting task inside task
-        with allow_join_result():
-            result = tasks_result.get(propagate=False)
 
-        for i, res in enumerate(result):
-            tc = curr_tc[i]
-            if isinstance(res, Exception):
-                retry_cnt[tc] = retry_cnt.get(tc, 0) + 1
-                if retry_cnt[tc] <= 5:
-                    failed_tc.append(tc)
-                else:
-                    try:
-                        raise res
-                    except:
-                        tb = traceback.format_exc(10)
+@shared_task(bind=True, acks_late=True, max_retries=5)
+def grade_testcase(self, exec_content, exec_name, time_limit, memory_limit,
+                   in_gzip, out_gzip, tc_num):
 
-                    save_sub(sub, Submission.ERROR, tb, 0)
-                    send_feedback.delay(
-                        assignment_id, course_id, activity_id, user_id, attempt_number,
-                        INTERNAL_ERROR, 0
-                    )
-                    return "FAIL (RETRY EXCEEDED)"
+    input_text = decompress_gzip_file(in_gzip)
+    output_text = decompress_gzip_file(out_gzip)
 
-            else:
-                tc_verdict[tc] = res
+    try:
+        result = JavaRunner.run(
+            exec_content,
+            exec_name,
+            time_limit,
+            memory_limit,
+            input_text,
+            output_text
+        )
+        return tc_num, result
+    except Exception as exc:
+        rand = random.uniform(2, 4)
+        self.retry(exc=exc, countdown=rand ** self.request.retries)
 
-        curr_tc = failed_tc
-        failed_tc = []
 
-    verdict = []
-    for i in range(num_tc):
-        verdict.append(tc_verdict[i])
+@shared_task(acks_late=True)
+def grade_success_handler(results, sub_identifier):
+    verdict = [None]*len(results)
+    for tc_num, tc_result in results:
+        verdict[tc_num-1] = tc_result
 
-    verdict_text = verdict_to_text(verdict)
-
-    num_ac = len([x for x in verdict if x[0] == "AC"])
+    num_ac = len([x for x in verdict if x[0] == ACCEPTED])
     grade = num_ac * 100 / len(verdict)
 
-    save_sub(sub, Submission.DONE, verdict_text, grade)
+    verdict_text = verdict_to_text(verdict)
+    save_sub_with_id(
+        sub_identifier["submission_id"], Submission.DONE, verdict_text, grade)
 
     feedback = render_html(VERDICT_FEEDBACK, {
         "grade": grade,
         "verdict": verdict
     })
     send_feedback.delay(
-        assignment_id, course_id, activity_id, user_id, attempt_number,
+        sub_identifier["assignment_id"],
+        sub_identifier["course_id"],
+        sub_identifier["activity_id"],
+        sub_identifier["user_id"],
+        sub_identifier["attempt_number"],
         feedback, grade
     )
     return "OK"
 
 
 @shared_task(acks_late=True)
-def grade_testcase(exec_content, exec_name, time_limit, memory_limit, problem_name, tc):
-    redis_cache = cache.RedisCacheManager(problem_name, tc)
-
-    r_time = redis_cache.get_time_content()
-    if not all(r_time):
-        raise InputOutputNotFoundException(
-            "Input output time not found in redis")
-
-    if settings.DISK_CACHE_ENABLE:
-        disk_cache = cache.DiskCacheManager(problem_name, tc)
-
-        d_time = disk_cache.get_time_content()
-        if not all(d_time) or d_time[0] < r_time[0] or d_time[1] < r_time[1]:
-            r_gzip = redis_cache.get_content()
-            if not all(r_gzip):
-                raise InputOutputNotFoundException(
-                    "Input output not found in redis")
-
-            disk_cache.insert(*r_time, *r_gzip)
-
-        in_gzip, out_gzip = disk_cache.get_content()
-
-    else:
-        in_gzip, out_gzip = redis_cache.get_content()
-
-    if (in_gzip is None) or (out_gzip is None):
-        raise InputOutputNotFoundException("Input output not found")
-
-    input_text = decompress_gzip_file(in_gzip)
-    output_text = decompress_gzip_file(out_gzip)
-
-    return JavaRunner.run(
-        exec_content,
-        exec_name,
-        time_limit,
-        memory_limit,
-        input_text,
-        output_text
+def grade_fail_handler(req, exc, tb, sub_identifier):
+    msg = "Error due to `{}`. Please check logs.".format(str(exc))
+    save_sub_with_id(sub_identifier["submission_id"], Submission.ERROR, msg, 0)
+    send_feedback.delay(
+        sub_identifier["assignment_id"],
+        sub_identifier["course_id"],
+        sub_identifier["activity_id"],
+        sub_identifier["user_id"],
+        sub_identifier["attempt_number"],
+        INTERNAL_ERROR, 0
     )
+    return "OK"
+
+
+@shared_task(acks_late=True)
+def forward_fail_handler(req, exc, tb, sub_identifier):
+    """
+    If grading fail, it will raise exception at the current worker. In case
+    fail happens at `testcase` workers, we cannot change the submission from
+    it because the worker is designed not to connect to database. This function
+    will forward the error as event to main worker.
+    """
+    grade_fail_handler.delay(req, exc, tb, sub_identifier)
 
 
 @shared_task(priority=K_REDIS_HIGH_PRIORITY)
@@ -207,8 +214,10 @@ def skip(assignment_id, course_id, activity_id, user_id, attempt_number):
     return "OK"
 
 
-@shared_task(bind=True, max_retries=10)
-def send_feedback(self, assignment_id, course_id, activity_id, user_id, attempt_number, feedback, grade):
+@shared_task(bind=True, acks_late=True, max_retries=10)
+def send_feedback(self, assignment_id, course_id, activity_id,
+                  user_id, attempt_number, feedback, grade):
+
     url = settings.SCELE_URL
     base_params = {
         "wstoken": settings.SCELE_TOKEN,
@@ -219,10 +228,10 @@ def send_feedback(self, assignment_id, course_id, activity_id, user_id, attempt_
         assignment_id=assignment_id,
         user_id=user_id
     )
+
+    max_grade = 0
     if len(subs) > 0:
         max_grade = subs.aggregate(Max("grade"))["grade__max"]
-    else:
-        max_grade = 0
 
     feedback_data = {
         "assignmentid": assignment_id,

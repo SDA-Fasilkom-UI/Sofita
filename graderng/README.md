@@ -18,17 +18,13 @@ Data Structures and Algorithms Grader
    ```
    docker run --rm -d -p 6379:6379 --name test-redis redis
    ```
-1. Run worker.
+1. Run main worker.
    ```
    celery -A graderng worker --loglevel=info
    ```
-1. Run testcases.
+1. Run testcase worker.
    ```
    celery -A graderng worker -Q testcases --loglevel=info
-   ```
-1. Run feedbacks and jobs.
-   ```
-   celery -A graderng worker -Q feedbacks_jobs --loglevel=info
    ```
 
 ## Production
@@ -41,7 +37,7 @@ Data Structures and Algorithms Grader
 
    ```
    DJANGO_SECRET_KEY=thisissecretkey
-   DJANGO_ENV=debug
+   DJANGO_ENV=production
    DJANGO_MEDIA_LOCATION=/home/user/blablabla
    DJANGO_UPLOADS_DIRECTORY=randomdirectoryinsidemedia/
 
@@ -64,7 +60,6 @@ Data Structures and Algorithms Grader
 
    WORKER_CONCURRENCY = 2
    TESTCASES_CONCURRENCY = 8
-   FEEDBACKS_JOBS_CONCURRENCY = 4
    ```
 
 1. Run all services.
