@@ -17,9 +17,9 @@ class MossJob(BaseModel):
     ]
 
     assignment_id_list = models.CharField(max_length=128)
-    time_created = models.DateTimeField()
+    time_created = models.DateTimeField(null=True)
     template = models.TextField(blank=True)
-    log = models.TextField()
+    log = models.TextField(null=True, blank=True)
     zip_file = models.FileField(upload_to='moss/')
     status = models.CharField(
         max_length=2,
@@ -63,8 +63,8 @@ class ReportJob(BaseModel):
 
     id = models.AutoField(primary_key=True)
     assignment_id = models.IntegerField()
-    time_created = models.DateTimeField()
-    log = models.TextField()
+    time_created = models.DateTimeField(null=True)
+    log = models.TextField(null=True, blank=True)
     csv_file = models.FileField(upload_to='reports/')
     status = models.CharField(
         max_length=2,
