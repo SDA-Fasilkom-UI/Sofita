@@ -16,6 +16,7 @@ from grader.constants import (
     WRONG_ANSWER,
 )
 
+
 redis_conn = redis.Redis(connection_pool=redis_connection_pool)
 
 
@@ -59,7 +60,7 @@ class Sandbox():
 
         if time_limit is not None:
             base.append("--time={}".format(time_limit))
-            base.append("--wall-time={}".format(time_limit + 4))
+            base.append("--wall-time={}".format(time_limit + 2))
             base.append("--extra-time=0.5")
 
         if memory_limit is not None:

@@ -4,6 +4,7 @@ import os
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
+from app.constants import K_REDIS_HIGH_PRIORITY
 from app.permissions import TokenPermission
 from grader import tasks
 from grader.models import Submission
@@ -68,6 +69,7 @@ def grade(request):
     tasks.grade_submission.apply_async(
         (sub.id, sub.assignment_id, sub.course_id,
          sub.activity_id, sub.user_id, sub.attempt_number),
+        priority=K_REDIS_HIGH_PRIORITY
     )
 
     return Response({"message": "ok"})

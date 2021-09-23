@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from grader.admin import AssignmentIDFilter
 from job import tasks
 from job.models import MossJob, ReportJob
 
@@ -30,7 +29,6 @@ class MossJobAdmin(admin.ModelAdmin):
 
     def moss_job(self, obj):
         return "Moss Job ({})".format(obj.id)
-
     moss_job.admin_order_field = "id"
 
     def get_actions(self, request):
@@ -70,7 +68,6 @@ class ReportJobAdmin(admin.ModelAdmin):
 
     def report_job(self, obj):
         return "Report Job ({})".format(obj.id)
-
     report_job.admin_order_field = "id"
 
     def get_actions(self, request):

@@ -1,9 +1,9 @@
 import csv
-import io
 import datetime
+import io
+import logging
 import traceback
 
-from app.constants import K_REDIS_LOW_PRIORITY
 from celery import shared_task
 from django.db.models import Max
 from django.conf import settings
@@ -13,8 +13,10 @@ from grader.models import Submission
 from job.models import MossJob, ReportJob
 from job.moss import MossDownloader, MossUploader
 
+logger = logging.getLogger(__name__)
 
-@shared_task(time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
+
+@shared_task(time_limit=30*60)
 def check_plagiarism(moss_job_id):
     moss_job = MossJob.objects.filter(id=moss_job_id).first()
 
@@ -67,8 +69,13 @@ def check_plagiarism(moss_job_id):
         uploader.add_file_from_string(sub.content, display_name)
 
     try:
+        logger.info("Start contacting Moss server.")
+
         url = uploader.send()
+        logger.info("Done uploading Moss job.")
+
         zip_file = downloader.download_and_zip_report(url)
+        logger.info("Done downloading Moss job.")
 
         # rejoin assignment id for zip file naming
         assignment_ids_str = [str(id) for id in assignment_ids]
@@ -93,7 +100,7 @@ def check_plagiarism(moss_job_id):
         return ("FAIL", tb)
 
 
-@shared_task(time_limit=30*60, priority=K_REDIS_LOW_PRIORITY)
+@shared_task(time_limit=30*60)
 def generate_report(report_job_id):
     report_job = ReportJob.objects.filter(id=report_job_id).first()
 

@@ -206,17 +206,16 @@ REDIS_EXPIRE_TIME = os.environ.get("REDIS_EXPIRE_TIME", 7)  # days
 CELERY_BROKER_URL = CELERY_RESULT_BACKEND = "redis://:{}@{}:{}/0".format(
     REDIS_PASSWORD or "", REDIS_HOST, REDIS_PORT)
 
-
 CELERY_BROKER_TRANSPORT_OPTIONS = {
-    'priority_steps': list(range(10)),  # 0 - 9
+    'priority_steps': list(range(10)),
     'queue_order_strategy': 'priority',
     'visibility_timeout': 10*60,  # 10 mins
 }
 
-CELERY_TASK_DEFAULT_PRIORITY = 5
-
 CELERY_TASK_ROUTES = {
-    "grader.tasks.grade_testcase": {"queue": "testcases"},
+    "grader.tasks.send_feedback": {"queue": "misc"},
+    "grader.tasks.grade_testcase": {"queue": "testcase"},
+    "job.tasks.*": {"queue": "misc"}
 }
 
 CELERY_ACCEPT_CONTENT = ["pickle"]
@@ -247,6 +246,8 @@ HTTP_PROXY = os.environ.get("HTTP_PROXY")
 MOSS_USER_ID = os.environ.get("MOSS_USER_ID")
 
 
-# Sandbox
+# MISC
+
+DISK_CACHE_ENABLE = os.environ.get("DISK_CACHE_ENABLE", True)
 
 SANDBOX_FILESIZE_LIMIT = os.environ.get("SANDBOX_FILESIZE_LIMIT", 30)  # MB

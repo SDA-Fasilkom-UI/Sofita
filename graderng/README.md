@@ -18,13 +18,17 @@ Data Structures and Algorithms Grader
    ```
    docker run --rm -d -p 6379:6379 --name test-redis redis
    ```
-1. Run main worker.
+1. Run worker.
    ```
    celery -A graderng worker --loglevel=info
    ```
 1. Run testcase worker.
    ```
-   celery -A graderng worker -Q testcases --loglevel=info
+   celery -A graderng worker -Q testcase --loglevel=info
+   ```
+1. Run misc worker.
+   ```
+   celery -A graderng worker -Q misc --loglevel=info
    ```
 
 ## Production
@@ -37,7 +41,7 @@ Data Structures and Algorithms Grader
 
    ```
    DJANGO_SECRET_KEY=thisissecretkey
-   DJANGO_ENV=production
+   DJANGO_ENV=debug
    DJANGO_MEDIA_LOCATION=/home/user/blablabla
    DJANGO_UPLOADS_DIRECTORY=randomdirectoryinsidemedia/
 
@@ -58,8 +62,9 @@ Data Structures and Algorithms Grader
    SCELE_URL=http://172.20.0.1/webservice/rest/server.php
    SCELE_TOKEN=887bfe50daa8b8e518dd38e3832199b6
 
-   WORKER_CONCURRENCY = 2
-   TESTCASES_CONCURRENCY = 8
+   WORKER_CONCURRENCY=2
+   TESTCASE_CONCURRENCY=8
+   MISC_CONCURRENCY=4
    ```
 
 1. Run all services.

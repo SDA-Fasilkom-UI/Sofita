@@ -20,7 +20,7 @@ def register_actions():
     site.add_action(zip_and_download_folder)
 
 
-def zip_and_download_folder(_, fileobjects):
+def zip_and_download_folder(request, fileobjects):
     fileobject = fileobjects[0]
     zipname = fileobject.filename + ".zip"
 

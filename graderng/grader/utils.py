@@ -1,6 +1,7 @@
 import gzip
 import io
 import os
+import traceback
 
 from django.template import Context, Template
 from filebrowser.sites import site
@@ -71,7 +72,9 @@ def get_cases_path(problem_name):
     """
     return cases path
     """
-    return os.path.join(get_problems_path(), problem_name, "cases")
+    problems_path = get_problems_path()
+    cases_path = os.path.join(problems_path, problem_name, "cases")
+    return cases_path
 
 
 def get_tc_path(problem_name, tc):
@@ -101,7 +104,7 @@ def get_tc_mtime(problem_name, tc):
     in_path, out_path = get_tc_path(problem_name, tc)
     in_mtime = os.path.getmtime(in_path)
     out_mtime = os.path.getmtime(out_path)
-    return max(in_mtime, out_mtime)
+    return int(max(in_mtime, out_mtime))
 
 
 def get_in_out_name(num):
@@ -109,3 +112,17 @@ def get_in_out_name(num):
     return pair in and out filename based on testcase number (1-based)
     """
     return str(num) + ".in", str(num) + ".out"
+
+
+def get_traceback(exc):
+    """
+    hacky way to get traceback from exception
+    """
+    try:
+        raise exc
+    except:
+        return traceback.format_exc(10)
+
+
+class InputOutputNotFoundException(Exception):
+    pass
