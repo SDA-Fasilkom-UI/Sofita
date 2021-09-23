@@ -63,7 +63,7 @@ class ReportJobAdmin(admin.ModelAdmin):
     list_display = ("report_job", "assignment_id",
                     "name", "time_created", "status", "csv_file")
     readonly_fields = ("csv_file", "log", "status",
-                       "time_created", "id", "assignment_id")
+                       "time_created", "id")
     actions = [ReportJobAdminActions.regenerate_report]
 
     def report_job(self, obj):

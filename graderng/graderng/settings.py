@@ -213,8 +213,8 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 
 CELERY_TASK_ROUTES = {
-    "grader.tasks.send_feedback": {"queue": "misc"},
     "grader.tasks.grade_testcase": {"queue": "testcase"},
+    "grader.tasks.send_feedback": {"queue": "misc"},
     "job.tasks.*": {"queue": "misc"}
 }
 
