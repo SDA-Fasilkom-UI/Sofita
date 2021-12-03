@@ -60,7 +60,7 @@ def grade(request):
         assignment_id=data['assignmentid'],
         course_id=data['courseid'],
         activity_id=data['activityid'],
-        content=base64.b64decode(data['content']).decode(),
+        content=base64.b64decode(data['content']).decode("utf-8", "ignore"),
         due_date=data['duedate'],
         cut_off_date=data['cutoffdate'],
         time_modified=data['timemodified']
